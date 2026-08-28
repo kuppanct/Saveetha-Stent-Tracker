@@ -54,7 +54,7 @@ export default function Navbar() {
     { href: "/", label: "Dashboard", icon: Activity },
     { 
       href: "/technician-queue", 
-      label: "Call Alert Due", 
+      label: "Call Alert Queue", 
       icon: PhoneCall,
       badge: stats.overdue + stats.dueToday > 0 ? stats.overdue + stats.dueToday : undefined,
       badgeColor: stats.overdue > 0 ? "bg-rose-500" : "bg-amber-500"

@@ -145,29 +145,29 @@ export default function TechnicianQueue() {
     <div className="space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="p-2 rounded-xl bg-rose-100 text-rose-700">
+            <span className="p-2 rounded-xl bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400">
               <PhoneCall className="w-5 h-5" />
             </span>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              Technician Calling Queue
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+              Call Alert Queue
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             Prioritized call list of Due & Overdue DJ Stent patients. Track and remove Left and Right stents independently.
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
           <div className="text-right">
-            <p className="text-xs text-slate-500 font-semibold uppercase">Pending Follow-ups</p>
-            <p className="text-xl font-black text-rose-600">{stents.length} Stents</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase">Pending Follow-ups</p>
+            <p className="text-xl font-black text-rose-600 dark:text-rose-400">{stents.length} Stents</p>
           </div>
           <button
             onClick={fetchQueue}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+            className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl transition"
             title="Refresh Queue"
           >
             <RefreshCw className="w-4 h-4" />
@@ -176,7 +176,7 @@ export default function TechnicianQueue() {
       </div>
 
       {/* Search Input */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm">
         <div className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
@@ -184,16 +184,16 @@ export default function TechnicianQueue() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Filter queue by UHID, Patient Name, Phone, or Side (Left/Right)..."
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition text-slate-900 dark:text-slate-100"
           />
         </div>
       </div>
 
       {/* Queue Cards / Rows */}
       {loading ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1f293d] p-12 text-center shadow-sm">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-rose-500 border-t-transparent mb-3" />
-          <p className="text-sm font-semibold text-slate-700">Loading Calling Queue...</p>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading Call Alert Queue...</p>
         </div>
       ) : filteredStents.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">

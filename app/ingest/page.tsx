@@ -85,6 +85,46 @@ export default function IngestionHubPage() {
   const [ocrSaving, setOcrSaving] = useState(false);
   const [ocrSuccess, setOcrSuccess] = useState(false);
 
+  // Bilateral Split Mode in OCR
+  const [isDualMaterial, setIsDualMaterial] = useState<boolean>(false);
+  const [leftMaterial, setLeftMaterial] = useState<StentMaterial>("Carbothane");
+  const [leftInsertionDate, setLeftInsertionDate] = useState<string>("");
+  const [leftPlannedDate, setLeftPlannedDate] = useState<string>("");
+  const [leftResidualStone, setLeftResidualStone] = useState<boolean>(false);
+
+  const [rightMaterial, setRightMaterial] = useState<StentMaterial>("Carbothane");
+  const [rightInsertionDate, setRightInsertionDate] = useState<string>("");
+  const [rightPlannedDate, setRightPlannedDate] = useState<string>("");
+  const [rightResidualStone, setRightResidualStone] = useState<boolean>(false);
+
+  const calculatePlannedDate = (dateStr: string, mat: StentMaterial) => {
+    if (!dateStr) return "";
+    const days = mat === "Carbothane" ? 180 : mat === "Silicone" ? 365 : 90;
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split("T")[0];
+  };
+
+  const handleLeftMaterialChange = (mat: StentMaterial) => {
+    setLeftMaterial(mat);
+    setLeftPlannedDate(calculatePlannedDate(leftInsertionDate, mat));
+  };
+
+  const handleLeftInsertionDateChange = (date: string) => {
+    setLeftInsertionDate(date);
+    setLeftPlannedDate(calculatePlannedDate(date, leftMaterial));
+  };
+
+  const handleRightMaterialChange = (mat: StentMaterial) => {
+    setRightMaterial(mat);
+    setRightPlannedDate(calculatePlannedDate(rightInsertionDate, mat));
+  };
+
+  const handleRightInsertionDateChange = (date: string) => {
+    setRightInsertionDate(date);
+    setRightPlannedDate(calculatePlannedDate(date, rightMaterial));
+  };
+
   const handleImageFile = (file: File) => {
     if (!file) return;
     const reader = new FileReader();
@@ -119,6 +159,20 @@ export default function IngestionHubPage() {
       const data = await res.json();
       if (data.success) {
         setParsedDraft(data.parsed);
+        const parsed = data.parsed;
+        const initialDate = parsed.insertion_date || new Date().toISOString().split("T")[0];
+        const initialMat: StentMaterial = parsed.material || "Carbothane";
+        
+        setIsDualMaterial(false);
+        setLeftMaterial(initialMat);
+        setLeftInsertionDate(initialDate);
+        setLeftPlannedDate(calculatePlannedDate(initialDate, initialMat));
+        setLeftResidualStone(false);
+
+        setRightMaterial(initialMat);
+        setRightInsertionDate(initialDate);
+        setRightPlannedDate(calculatePlannedDate(initialDate, initialMat));
+        setRightResidualStone(false);
       }
       setOcrProgress(100);
     } catch (err: any) {
@@ -132,10 +186,28 @@ export default function IngestionHubPage() {
     if (!parsedDraft) return;
     setOcrSaving(true);
     try {
+      const payload: any = isDualMaterial
+        ? {
+            ...parsedDraft,
+            is_dual_material: true,
+            left_material: leftMaterial,
+            left_insertion_date: leftInsertionDate,
+            left_planned_removal_date: leftPlannedDate,
+            left_residual_stone: leftResidualStone,
+            right_material: rightMaterial,
+            right_insertion_date: rightInsertionDate,
+            right_planned_removal_date: rightPlannedDate,
+            right_residual_stone: rightResidualStone,
+          }
+        : {
+            ...parsedDraft,
+            is_dual_material: false,
+          };
+
       const res = await fetch("/api/stents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parsedDraft),
+        body: JSON.stringify(payload),
       });
       if (res.ok) {
         setOcrSuccess(true);
@@ -535,17 +607,50 @@ export default function IngestionHubPage() {
 
               {/* Bottom: Surgical & Stent Configuration (Staff selects) */}
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 dark:border-indigo-800 mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 border-b border-indigo-200 dark:border-indigo-800 mb-3 gap-2">
                   <span className="font-bold text-indigo-950 dark:text-indigo-200 text-sm flex items-center space-x-2">
                     <Layers className="w-4 h-4 text-indigo-600" />
-                    <span>2. Surgery & Stent Details (Select & Confirm)</span>
+                    <span>2. Surgery & Stent Details</span>
                   </span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 italic">
-                    Unit Chief & Surgeon Assignment
-                  </span>
+
+                  {/* Mode Toggle: Single vs Bilateral Different */}
+                  <div className="flex items-center space-x-1.5 bg-indigo-100 dark:bg-indigo-900/60 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setIsDualMaterial(false)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                        !isDualMaterial
+                          ? "bg-white dark:bg-slate-900 text-indigo-900 dark:text-indigo-200 shadow-sm"
+                          : "text-indigo-700 dark:text-indigo-300 hover:text-indigo-950"
+                      }`}
+                    >
+                      Single / Bilateral Same
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsDualMaterial(true);
+                        if (!leftInsertionDate) {
+                          const dt = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
+                          setLeftInsertionDate(dt);
+                          setLeftPlannedDate(calculatePlannedDate(dt, leftMaterial));
+                          setRightInsertionDate(dt);
+                          setRightPlannedDate(calculatePlannedDate(dt, rightMaterial));
+                        }
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                        isDualMaterial
+                          ? "bg-purple-600 text-white shadow-sm"
+                          : "text-indigo-700 dark:text-indigo-300 hover:text-indigo-950"
+                      }`}
+                    >
+                      <span>⚡ Bilateral Different Stents</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                {/* Common Surgeon & Unit Fields */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-3">
                   <div>
                     <div className="h-5 flex items-center mb-1">
                       <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
@@ -570,100 +675,14 @@ export default function IngestionHubPage() {
                           planned_removal_date: newPlanned,
                           inserted_by: newUnit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha",
                         });
+                        setLeftMaterial(newMat);
+                        setRightMaterial(newMat);
                       }}
                       className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
                       <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar</option>
                     </select>
-                  </div>
-
-                  <div>
-                    <div className="h-5 flex items-center mb-1">
-                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
-                        Stent Laterality (Side)
-                      </label>
-                    </div>
-                    <select
-                      value={parsedDraft.laterality}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as Laterality })}
-                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="Right">Right Kidney</option>
-                      <option value="Left">Left Kidney</option>
-                      <option value="Bilateral">Bilateral</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <div className="h-5 flex items-center mb-1">
-                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
-                        Stent Material
-                      </label>
-                    </div>
-                    <select
-                      value={parsedDraft.material}
-                      onChange={(e) => {
-                        const newMat = e.target.value as StentMaterial;
-                        const today = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
-                        const days = newMat === "Carbothane" ? 180 : newMat === "Silicone" ? 365 : 90;
-                        const d = new Date(today);
-                        d.setDate(d.getDate() + days);
-                        const newPlanned = d.toISOString().split("T")[0];
-
-                        setParsedDraft({
-                          ...parsedDraft,
-                          material: newMat,
-                          planned_removal_date: newPlanned,
-                        });
-                      }}
-                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
-                    >
-                      <option value="Carbothane">Carbothane (180 Days)</option>
-                      <option value="Regular">Regular Polyurethane (90 Days)</option>
-                      <option value="Silicone">Silicone Long-term (365 Days)</option>
-                    </select>
-                  </div>
-
-                  {/* Symmetrical Aligned Date Pickers */}
-                  <div>
-                    <div className="h-5 flex items-center mb-1">
-                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
-                        Insertion Date
-                      </label>
-                    </div>
-                    <input
-                      type="date"
-                      value={parsedDraft.insertion_date}
-                      onChange={(e) => {
-                        const newDate = e.target.value;
-                        const days = parsedDraft.material === "Carbothane" ? 180 : parsedDraft.material === "Silicone" ? 365 : 90;
-                        const d = new Date(newDate);
-                        d.setDate(d.getDate() + days);
-                        const newPlanned = d.toISOString().split("T")[0];
-
-                        setParsedDraft({
-                          ...parsedDraft,
-                          insertion_date: newDate,
-                          planned_removal_date: newPlanned,
-                        });
-                      }}
-                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="h-5 flex items-center mb-1">
-                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
-                        Planned Removal Date
-                      </label>
-                    </div>
-                    <input
-                      type="date"
-                      value={parsedDraft.planned_removal_date}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
-                      className="w-full h-11 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
-                    />
                   </div>
 
                   <div>
@@ -687,35 +706,304 @@ export default function IngestionHubPage() {
                       )}
                     </select>
                   </div>
+                </div>
 
-                  {/* Procedure Notes Input */}
-                  <div className="sm:col-span-2 lg:col-span-3">
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Procedure Done / Clinical Notes
-                    </label>
-                    <input
-                      type="text"
-                      value={parsedDraft.notes || ""}
-                      placeholder="e.g. Left URSL + DJ Stenting for 10mm proximal calculus"
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, notes: e.target.value })}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-medium text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
-                    />
+                {isDualMaterial ? (
+                  /* DUAL BILATERAL SPLIT CARD MODE */
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-3 animate-fadeIn">
+                    {/* Left Side Stent Box */}
+                    <div className="bg-sky-50/70 dark:bg-sky-950/40 border-2 border-sky-300 dark:border-sky-800 rounded-2xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-sky-200 dark:border-sky-800">
+                        <span className="font-bold text-sky-900 dark:text-sky-200 text-xs flex items-center space-x-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-sky-500" />
+                          <span>LEFT KIDNEY STENT</span>
+                        </span>
+                        <span className="text-[10px] bg-sky-200 dark:bg-sky-900 text-sky-800 dark:text-sky-200 font-bold px-2 py-0.5 rounded">
+                          {leftMaterial === "Carbothane" ? "180d" : leftMaterial === "Silicone" ? "365d" : "90d"} Lifespan
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                          Left Material
+                        </label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(["Regular", "Carbothane", "Silicone"] as StentMaterial[]).map((m) => (
+                            <button
+                              type="button"
+                              key={m}
+                              onClick={() => handleLeftMaterialChange(m)}
+                              className={`py-1.5 px-1 rounded-lg text-xs font-bold border transition text-center ${
+                                leftMaterial === m
+                                  ? "bg-sky-600 text-white border-sky-600 shadow-sm"
+                                  : "bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
+                              }`}
+                            >
+                              <div className="text-[11px] leading-tight">{m}</div>
+                              <div className="text-[9px] font-normal opacity-80 leading-tight">
+                                {m === "Carbothane" ? "180d" : m === "Silicone" ? "365d" : "90d"}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <div className="h-5 flex items-center mb-1">
+                            <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              Left Insertion Date
+                            </label>
+                          </div>
+                          <input
+                            type="date"
+                            value={leftInsertionDate}
+                            onChange={(e) => handleLeftInsertionDateChange(e.target.value)}
+                            required
+                            className="w-full h-10 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="h-5 flex items-center mb-1">
+                            <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              Left Due Date
+                            </label>
+                          </div>
+                          <input
+                            type="date"
+                            value={leftPlannedDate}
+                            onChange={(e) => setLeftPlannedDate(e.target.value)}
+                            required
+                            className="w-full h-10 px-2.5 py-1.5 bg-sky-100 dark:bg-sky-950/80 border border-sky-300 dark:border-sky-700 rounded-lg text-xs font-bold text-sky-950 dark:text-sky-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-1">
+                        <input
+                          type="checkbox"
+                          id="ocr_left_res_stone"
+                          checked={leftResidualStone}
+                          onChange={(e) => setLeftResidualStone(e.target.checked)}
+                          className="w-4 h-4 text-sky-600 rounded"
+                        />
+                        <label htmlFor="ocr_left_res_stone" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                          Left Residual Stone Present
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Right Side Stent Box */}
+                    <div className="bg-purple-50/70 dark:bg-purple-950/40 border-2 border-purple-300 dark:border-purple-800 rounded-2xl p-3.5 space-y-3">
+                      <div className="flex items-center justify-between pb-1.5 border-b border-purple-200 dark:border-purple-800">
+                        <span className="font-bold text-purple-900 dark:text-purple-200 text-xs flex items-center space-x-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                          <span>RIGHT KIDNEY STENT</span>
+                        </span>
+                        <span className="text-[10px] bg-purple-200 dark:bg-purple-900 text-purple-800 dark:text-purple-200 font-bold px-2 py-0.5 rounded">
+                          {rightMaterial === "Carbothane" ? "180d" : rightMaterial === "Silicone" ? "365d" : "90d"} Lifespan
+                        </span>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase mb-1">
+                          Right Material
+                        </label>
+                        <div className="grid grid-cols-3 gap-1">
+                          {(["Regular", "Carbothane", "Silicone"] as StentMaterial[]).map((m) => (
+                            <button
+                              type="button"
+                              key={m}
+                              onClick={() => handleRightMaterialChange(m)}
+                              className={`py-1.5 px-1 rounded-lg text-xs font-bold border transition text-center ${
+                                rightMaterial === m
+                                  ? "bg-purple-600 text-white border-purple-600 shadow-sm"
+                                  : "bg-white dark:bg-slate-900 hover:bg-slate-50 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
+                              }`}
+                            >
+                              <div className="text-[11px] leading-tight">{m}</div>
+                              <div className="text-[9px] font-normal opacity-80 leading-tight">
+                                {m === "Carbothane" ? "180d" : m === "Silicone" ? "365d" : "90d"}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <div className="h-5 flex items-center mb-1">
+                            <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              Right Insertion Date
+                            </label>
+                          </div>
+                          <input
+                            type="date"
+                            value={rightInsertionDate}
+                            onChange={(e) => handleRightInsertionDateChange(e.target.value)}
+                            required
+                            className="w-full h-10 px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-lg text-xs font-semibold text-slate-800 dark:text-slate-200"
+                          />
+                        </div>
+
+                        <div>
+                          <div className="h-5 flex items-center mb-1">
+                            <label className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              Right Due Date
+                            </label>
+                          </div>
+                          <input
+                            type="date"
+                            value={rightPlannedDate}
+                            onChange={(e) => setRightPlannedDate(e.target.value)}
+                            required
+                            className="w-full h-10 px-2.5 py-1.5 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-700 rounded-lg text-xs font-bold text-purple-950 dark:text-purple-200"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center space-x-2 pt-1">
+                        <input
+                          type="checkbox"
+                          id="ocr_right_res_stone"
+                          checked={rightResidualStone}
+                          onChange={(e) => setRightResidualStone(e.target.checked)}
+                          className="w-4 h-4 text-purple-600 rounded"
+                        />
+                        <label htmlFor="ocr_right_res_stone" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                          Right Residual Stone Present
+                        </label>
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  /* STANDARD SINGLE / SAME BILATERAL STENT MODE */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs mb-3 animate-fadeIn">
+                    <div>
+                      <div className="h-5 flex items-center mb-1">
+                        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                          Stent Laterality (Side)
+                        </label>
+                      </div>
+                      <select
+                        value={parsedDraft.laterality}
+                        onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as Laterality })}
+                        className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="Right">Right Kidney</option>
+                        <option value="Left">Left Kidney</option>
+                        <option value="Bilateral">Bilateral (Same Material)</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <div className="h-5 flex items-center mb-1">
+                        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                          Stent Material
+                        </label>
+                      </div>
+                      <select
+                        value={parsedDraft.material}
+                        onChange={(e) => {
+                          const newMat = e.target.value as StentMaterial;
+                          const today = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
+                          const days = newMat === "Carbothane" ? 180 : newMat === "Silicone" ? 365 : 90;
+                          const d = new Date(today);
+                          d.setDate(d.getDate() + days);
+                          const newPlanned = d.toISOString().split("T")[0];
+
+                          setParsedDraft({
+                            ...parsedDraft,
+                            material: newMat,
+                            planned_removal_date: newPlanned,
+                          });
+                        }}
+                        className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                      >
+                        <option value="Carbothane">Carbothane (180 Days)</option>
+                        <option value="Regular">Regular Polyurethane (90 Days)</option>
+                        <option value="Silicone">Silicone Long-term (365 Days)</option>
+                      </select>
+                    </div>
+
+                    {/* Symmetrical Aligned Date Pickers */}
+                    <div>
+                      <div className="h-5 flex items-center mb-1">
+                        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                          Insertion Date
+                        </label>
+                      </div>
+                      <input
+                        type="date"
+                        value={parsedDraft.insertion_date}
+                        onChange={(e) => {
+                          const newDate = e.target.value;
+                          const days = parsedDraft.material === "Carbothane" ? 180 : parsedDraft.material === "Silicone" ? 365 : 90;
+                          const d = new Date(newDate);
+                          d.setDate(d.getDate() + days);
+                          const newPlanned = d.toISOString().split("T")[0];
+
+                          setParsedDraft({
+                            ...parsedDraft,
+                            insertion_date: newDate,
+                            planned_removal_date: newPlanned,
+                          });
+                        }}
+                        className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="h-5 flex items-center mb-1">
+                        <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                          Planned Removal Date
+                        </label>
+                      </div>
+                      <input
+                        type="date"
+                        value={parsedDraft.planned_removal_date}
+                        onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
+                        className="w-full h-11 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Procedure Notes Input */}
+                <div className="w-full mb-3">
+                  <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                    Procedure Done / Clinical Notes
+                  </label>
+                  <input
+                    type="text"
+                    value={parsedDraft.notes || ""}
+                    placeholder="e.g. Left URSL + Right RIRS with Bilateral DJ Stenting for calculi"
+                    onChange={(e) => setParsedDraft({ ...parsedDraft, notes: e.target.value })}
+                    className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-medium text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                  />
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 mt-3 border-t border-indigo-200 dark:border-indigo-800">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="ocr_res_stone"
-                      checked={parsedDraft.residual_stone}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, residual_stone: e.target.checked })}
-                      className="w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
-                      Residual Stone Present (Needs clearance check)
-                    </label>
-                  </div>
+                  {!isDualMaterial ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="ocr_res_stone"
+                        checked={parsedDraft.residual_stone}
+                        onChange={(e) => setParsedDraft({ ...parsedDraft, residual_stone: e.target.checked })}
+                        className="w-4 h-4 text-indigo-600 rounded"
+                      />
+                      <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                        Residual Stone Present (Needs clearance check)
+                      </label>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-indigo-900 dark:text-indigo-300 font-semibold flex items-center space-x-1.5">
+                      <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                      <span>Will create 2 independent tracking records for Left & Right kidneys.</span>
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -726,12 +1014,12 @@ export default function IngestionHubPage() {
                     {ocrSuccess ? (
                       <>
                         <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                        <span>Stent Registered to Database!</span>
+                        <span>{isDualMaterial ? "Bilateral Stents Registered!" : "Stent Registered to Database!"}</span>
                       </>
                     ) : (
                       <>
                         <ShieldCheck className="w-4 h-4" />
-                        <span>{ocrSaving ? "Saving..." : "1-Tap Confirm & Register"}</span>
+                        <span>{ocrSaving ? "Saving..." : isDualMaterial ? "Confirm & Register Bilateral Stents" : "1-Tap Confirm & Register"}</span>
                       </>
                     )}
                   </button>
