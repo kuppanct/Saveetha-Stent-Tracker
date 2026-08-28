@@ -81,7 +81,7 @@ const mockStents: Stent[] = [
     planned_removal_date: format(addDays(new Date(), 50), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: false,
-    inserted_by: "Dr. Arunkumar MS, MCh (Uro)",
+    inserted_by: "Prof. N. Muthulatha (Unit 1)",
     created_at: format(subDays(new Date(), 40), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
   // 2. Rajesh: Regular Stent, Left Side, Overdue by 15 days (T+14 Overdue category)
@@ -95,7 +95,7 @@ const mockStents: Stent[] = [
     planned_removal_date: format(subDays(new Date(), 15), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: true,
-    inserted_by: "Dr. Balaji MD, MCh (Uro)",
+    inserted_by: "Prof. M. Sivasankar (Unit 2)",
     created_at: format(subDays(new Date(), 105), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
   // 3. Annamalai: Left Side, Due TODAY (T-0)
@@ -109,7 +109,7 @@ const mockStents: Stent[] = [
     planned_removal_date: format(new Date(), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: false,
-    inserted_by: "Dr. Saravanan MCh (Uro)",
+    inserted_by: "Prof. N. Muthulatha (Unit 1)",
     created_at: format(subDays(new Date(), 90), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
   // 4A. Priya Velu: DUAL MATERIAL BILATERAL CASE:
@@ -124,7 +124,7 @@ const mockStents: Stent[] = [
     planned_removal_date: format(addDays(new Date(), 12), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: true,
-    inserted_by: "Dr. Arunkumar MS, MCh (Uro)",
+    inserted_by: "Prof. N. Muthulatha (Unit 1)",
     created_at: format(subDays(new Date(), 78), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
   // 4B. Priya Velu: Right Side: Silicone 365d Stent (Due in 287 days - Long-term Active)
@@ -138,21 +138,21 @@ const mockStents: Stent[] = [
     planned_removal_date: format(addDays(new Date(), 287), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: false,
-    inserted_by: "Dr. Arunkumar MS, MCh (Uro)",
+    inserted_by: "Prof. N. Muthulatha (Unit 1)",
     created_at: format(subDays(new Date(), 78), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
-  // 5. Meenakshi: Severely Overdue (+190 days)
+  // 5. Meenakshi: Silicone Stent, Carbothane 180d, Overdue 100 days (T+90 Overdue category)
   {
     id: "s-005",
     patient_id: "p-005",
     unit: "Unit 2",
-    laterality: "Right",
-    material: "Regular",
+    laterality: "Bilateral",
+    material: "Carbothane",
     insertion_date: format(subDays(new Date(), 280), "yyyy-MM-dd"),
-    planned_removal_date: format(subDays(new Date(), 190), "yyyy-MM-dd"),
+    planned_removal_date: format(subDays(new Date(), 100), "yyyy-MM-dd"),
     status: "Active",
     residual_stone: true,
-    inserted_by: "Dr. Balaji MD, MCh (Uro)",
+    inserted_by: "Prof. M. Sivasankar (Unit 2)",
     created_at: format(subDays(new Date(), 280), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
   },
 ];

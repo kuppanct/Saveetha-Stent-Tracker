@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   PlusCircle, 
   MessageSquare, 
@@ -16,25 +16,40 @@ import {
   Sparkles,
   RefreshCw,
   Eye,
-  ShieldCheck
+  ShieldCheck,
+  Phone,
+  User,
+  Calendar,
+  Layers
 } from "lucide-react";
 import Papa from "papaparse";
 import { createWorker } from "tesseract.js";
 import { ParsedStentEntry } from "@/lib/text-parser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { UnitType, Laterality, StentMaterial } from "@/lib/types";
 
 type TabChannel = "FORM" | "BOT" | "OCR" | "CSV";
 
 export default function IngestionHubPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabChannel>("OCR");
+  const [connectedPhone, setConnectedPhone] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/whatsapp/status")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.connectedPhone) setConnectedPhone(d.connectedPhone);
+      })
+      .catch(() => {});
+  }, []);
 
   // ==========================================
   // CHANNEL 2: BOT SIMULATOR STATE
   // ==========================================
   const [botMessage, setBotMessage] = useState(
-    "#STENT SMCH-2026-00890 Ravi Kumar 9876543210 Right Regular RIRS Residual:Yes Unit1"
+    "#STENT 260826056037 Kumar K 6374989972 Right Regular RIRS Residual:No Unit1"
   );
   const [botTesting, setBotTesting] = useState(false);
   const [botResponse, setBotResponse] = useState<any>(null);
@@ -81,13 +96,13 @@ export default function IngestionHubPage() {
 
   const runOCR = async (imageSrc: string) => {
     setOcrScanning(true);
-    setOcrProgress(10);
+    setOcrProgress(15);
     setParsedDraft(null);
     try {
       const worker = await createWorker("eng");
-      setOcrProgress(40);
+      setOcrProgress(45);
       const ret = await worker.recognize(imageSrc);
-      setOcrProgress(80);
+      setOcrProgress(85);
       await worker.terminate();
 
       const text = ret.data.text;
@@ -136,37 +151,54 @@ export default function IngestionHubPage() {
     }
   };
 
-  // Sample OCR test images
-  const loadSampleOCR = async (type: "viana" | "ot_log") => {
-    const sampleVianaText = `
-SAVEETHA MEDICAL COLLEGE & HOSPITAL
-DEPARTMENT OF UROLOGY - OPERATIVE REPORT
-PATIENT NAME: Soundararajan M
-UHID / HOSPITAL NO: SMCH-2026-00741
-CONTACT PHONE: 9840998877
-PROCEDURE DONE: Right URSL + DJ Stenting
-INDICATION: 11mm Upper Ureteric Calculus
-STENT DETAILS: Right Polyurethane 6Fr / 26cm Regular Stent
-POST-OP NOTE: Residual stone present in lower pole. Advised ESWL after 2 weeks.
-OPERATING SURGEON: Dr. Balaji MS, MCh (Uro) - Unit 2
-DATE: ${new Date().toISOString().split("T")[0]}
+  // Load exact sample matching user's Viana Patient Card screenshot
+  const loadSampleVianaCard = async () => {
+    const sampleVianaScreenText = `
+Kumar K
+PATIENT PROFILE & WALLET
+
+FULL NAME
+Kumar K
+
+PATIENT ID
+260826056037
+
+ABHA NUMBER
+-
+
+ABHA ADDRESS
+-
+
+DATE OF BIRTH
+1977-04-10 (49Y)
+
+MEDICAL & CONTACT
+
+GENDER
+MALE
+
+BLOOD GROUP
+O+
+
+CONTACT
+6374989972
     `;
 
-    setOcrRawText(sampleVianaText);
+    setOcrRawText(sampleVianaScreenText);
     setOcrScanning(true);
     setOcrProgress(100);
     setTimeout(async () => {
       const res = await fetch("/api/ingest/ocr", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText: sampleVianaText }),
+        body: JSON.stringify({ ocrText: sampleVianaScreenText }),
       });
       const data = await res.json();
       if (data.success) {
         setParsedDraft(data.parsed);
       }
       setOcrScanning(false);
-    }, 400);
+    }, 300);
   };
 
   // ==========================================
@@ -208,7 +240,7 @@ DATE: ${new Date().toISOString().split("T")[0]}
   };
 
   const downloadSampleCsv = () => {
-    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Insertion Date,Residual Stone,Surgeon\nSMCH-2026-00901,Murugan V,9840112233,Right,Regular,Unit 1,2026-06-01,No,Dr. Arunkumar\nSMCH-2026-00902,Sita Devi,9876554433,Left,Carbothane,Unit 2,2026-04-15,Yes,Dr. Balaji\nSMCH-2026-00903,Praveen K,9444332211,Bilateral,Silicone,Unit 1,2026-01-10,No,Dr. Saravanan";
+    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Insertion Date,Residual Stone,Surgeon\n260826056037,Kumar K,6374989972,Right,Regular,Unit 1,2026-08-28,No,Prof. N. Muthulatha\nSMCH-2026-00902,Sita Devi,9876554433,Left,Carbothane,Unit 2,2026-08-15,Yes,Prof. M. Sivasankar\nSMCH-2026-00903,Praveen K,9444332211,Bilateral,Silicone,Unit 1,2026-08-10,No,Prof. N. Muthulatha";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -232,7 +264,7 @@ DATE: ${new Date().toISOString().split("T")[0]}
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            4 redundant pathways designed to eliminate data entry fatigue among Urology residents & nurses.
+            4 redundant pathways designed to eliminate data entry fatigue • Unit 1 (Prof. N. Muthulatha) & Unit 2 (Prof. M. Sivasankar)
           </p>
         </div>
 
@@ -304,29 +336,35 @@ DATE: ${new Date().toISOString().split("T")[0]}
           ========================================================================= */}
       {activeTab === "BOT" && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                 <MessageSquare className="w-5 h-5 text-emerald-600" />
                 <span>OT Resident WhatsApp & Telegram Ingestion Bot</span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Post-case quick logging: Residents send a short structured syntax directly on WhatsApp after completing an OT procedure.
+                Residents send a quick structured syntax message to the Department WhatsApp after scrubbing out.
               </p>
             </div>
-            <span className="text-[11px] bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">
-              Zero-Friction Text / Voice
-            </span>
+            
+            {/* Live Gateway Phone Info */}
+            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-xs text-emerald-950 flex items-center space-x-2 self-start">
+              <Phone className="w-4 h-4 text-emerald-700" />
+              <div>
+                <p className="font-bold">Send to Department WhatsApp:</p>
+                <p className="font-mono text-emerald-800">{connectedPhone ? `+${connectedPhone}` : "Scan QR in WhatsApp Center"}</p>
+              </div>
+            </div>
           </div>
 
           {/* Syntax Guide Card */}
           <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs space-y-2">
-            <p className="font-bold text-emerald-900">Standard Syntax Format:</p>
+            <p className="font-bold text-emerald-900">Standard Post-Op Syntax Format:</p>
             <div className="bg-white p-3 rounded-xl font-mono text-emerald-800 border border-emerald-300 select-all">
-              #STENT &lt;UHID&gt; &lt;Patient Name&gt; &lt;Phone&gt; &lt;Side: Left/Right/Bilateral&gt; &lt;Material: Regular/Carbothane/Silicone&gt; &lt;Procedure: RIRS/URSL/PCNL&gt; Residual:&lt;Yes/No&gt; &lt;Unit1/Unit2&gt;
+              #STENT &lt;UHID&gt; &lt;Patient Name&gt; &lt;Phone&gt; &lt;Side: Right/Left/Bilateral&gt; &lt;Material: Regular/Carbothane/Silicone&gt; &lt;Procedure: RIRS/URSL/PCNL&gt; Residual:&lt;Yes/No&gt; &lt;Unit1/Unit2&gt;
             </div>
             <p className="text-[11px] text-emerald-700">
-              💡 <em>Example:</em> <code>#STENT 12345678 Ravi Kumar 9876543210 Right Regular RIRS Residual:Yes Unit1</code>
+              💡 <em>Example for Unit 1 (Prof. N. Muthulatha):</em> <code>#STENT 260826056037 Kumar K 6374989972 Right Regular RIRS Residual:No Unit1</code>
             </p>
           </div>
 
@@ -368,7 +406,7 @@ DATE: ${new Date().toISOString().split("T")[0]}
                 ) : (
                   <>
                     <AlertTriangle className="w-5 h-5 text-rose-600" />
-                    <span>Bot Ingestion Failed</span>
+                    <span>Bot Ingestion Notice</span>
                   </>
                 )}
               </div>
@@ -378,7 +416,8 @@ DATE: ${new Date().toISOString().split("T")[0]}
                   <p>👤 Patient: <strong>{botResponse.stent?.patient?.name}</strong> (UHID: {botResponse.stent?.patient?.uhid})</p>
                   <p>📍 Side: <strong>{botResponse.stent?.laterality}</strong> Kidney ({botResponse.stent?.material} Stent)</p>
                   <p>📅 Due Date: <strong>{botResponse.stent?.planned_removal_date}</strong> (Auto calculated)</p>
-                  <p>⚠️ Residual Stone: {botResponse.stent?.residual_stone ? "Yes" : "No"} • Unit: {botResponse.stent?.unit}</p>
+                  <p>👨‍⚕️ Unit: <strong>{botResponse.stent?.unit}</strong> ({botResponse.stent?.unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha"})</p>
+                  <p>⚠️ Residual Stone: {botResponse.stent?.residual_stone ? "Yes" : "No"}</p>
                 </div>
               ) : (
                 <p className="font-semibold">{botResponse.error}</p>
@@ -389,26 +428,27 @@ DATE: ${new Date().toISOString().split("T")[0]}
       )}
 
       {/* =========================================================================
-          CHANNEL 3: CAMERA OCR (VIANA HEALTH / OT REGISTER SNAPPER)
+          CHANNEL 3: CAMERA OCR (VIANA HEALTH PATIENT PROFILE CARD SNAPPER)
           ========================================================================= */}
       {activeTab === "OCR" && (
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
                 <Camera className="w-5 h-5 text-indigo-600" />
-                <span>Camera OCR Snapper (Viana Health / OT Register)</span>
+                <span>Camera OCR Snapper (Viana Health Patient Profile Screen)</span>
               </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Take a photo of the Viana Health monitor screen or handwritten OT register logbook. OCR automatically extracts UHID, Name, Side, and Procedure for 1-tap confirmation.
+                Snap a photo of the Viana Patient Profile card. OCR automatically extracts <strong>Patient Name, UHID, and Phone Contact</strong>; staff simply pick the stent & unit details below to confirm!
               </p>
             </div>
+            
             <button
               type="button"
-              onClick={() => loadSampleOCR("viana")}
-              className="text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition"
+              onClick={loadSampleVianaCard}
+              className="text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition shrink-0"
             >
-              Load Sample OT Note
+              Demo: Load Kumar K Profile Screen
             </button>
           </div>
 
@@ -420,10 +460,10 @@ DATE: ${new Date().toISOString().split("T")[0]}
             >
               <Camera className="w-8 h-8 text-indigo-600" />
               <p className="text-xs font-bold text-slate-800">
-                Snap Photo or Upload OT Note Image
+                Snap Photo of Viana EMR Screen / OT Card
               </p>
               <p className="text-[11px] text-slate-500">
-                Supports JPG, PNG photos of Viana EMR & OT logbook
+                Auto-extracts FULL NAME, PATIENT ID, and CONTACT
               </p>
               <input
                 type="file"
@@ -441,7 +481,7 @@ DATE: ${new Date().toISOString().split("T")[0]}
             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-center space-y-3">
               <div className="flex items-center justify-between text-xs font-bold text-slate-700">
                 <span>OCR Scanning Engine</span>
-                <span>{ocrScanning ? `${ocrProgress}%` : parsedDraft ? "Extraction Ready" : "Standby"}</span>
+                <span>{ocrScanning ? `${ocrProgress}%` : parsedDraft ? "✅ Extracted" : "Standby"}</span>
               </div>
 
               {ocrScanning && (
@@ -463,118 +503,202 @@ DATE: ${new Date().toISOString().split("T")[0]}
 
           {/* Parsed 1-Tap Confirmation Card */}
           {parsedDraft && (
-            <div className="bg-indigo-50/70 border-2 border-indigo-300 rounded-2xl p-5 space-y-4 animate-fadeIn">
-              <div className="flex items-center justify-between pb-2 border-b border-indigo-200">
-                <span className="font-bold text-indigo-950 text-sm flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span>Extracted Stent Draft (Review & 1-Tap Confirm)</span>
-                </span>
-                <span className="text-[10px] bg-indigo-200 text-indigo-900 font-bold px-2 py-0.5 rounded">
-                  AI OCR Parsed
-                </span>
+            <div className="bg-indigo-50/70 border-2 border-indigo-300 rounded-2xl p-5 space-y-5 animate-fadeIn">
+              
+              {/* Top: Demographics Extracted from Photo */}
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 mb-3">
+                  <span className="font-bold text-indigo-950 text-sm flex items-center space-x-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>1. Patient Demographics (Extracted from Photo)</span>
+                  </span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-200">
+                    Auto-Extracted from Viana Screen
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase">Patient ID / UHID</label>
+                    <input
+                      type="text"
+                      value={parsedDraft.uhid}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, uhid: e.target.value })}
+                      className="w-full font-mono font-bold text-indigo-900 bg-transparent outline-none mt-0.5 text-sm"
+                    />
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase">Full Name</label>
+                    <input
+                      type="text"
+                      value={parsedDraft.name}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, name: e.target.value })}
+                      className="w-full font-bold text-slate-900 bg-transparent outline-none mt-0.5 text-sm"
+                    />
+                  </div>
+
+                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase">Contact Phone</label>
+                    <input
+                      type="text"
+                      value={parsedDraft.phone}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, phone: e.target.value })}
+                      className="w-full font-bold text-emerald-800 bg-transparent outline-none mt-0.5 text-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">UHID</label>
-                  <input
-                    type="text"
-                    value={parsedDraft.uhid}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, uhid: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg font-bold text-indigo-900"
-                  />
+              {/* Bottom: Surgical & Stent Configuration (Staff selects) */}
+              <div>
+                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 mb-3">
+                  <span className="font-bold text-indigo-950 text-sm flex items-center space-x-2">
+                    <Layers className="w-4 h-4 text-indigo-600" />
+                    <span>2. Surgery & Stent Details (Select & Confirm)</span>
+                  </span>
+                  <span className="text-[10px] text-slate-500 italic">
+                    Fill surgical details for tracking
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">Patient Name</label>
-                  <input
-                    type="text"
-                    value={parsedDraft.name}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, name: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg font-bold"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Urology Unit & Chief
+                    </label>
+                    <select
+                      value={parsedDraft.unit}
+                      onChange={(e) => {
+                        const newUnit = e.target.value as UnitType;
+                        setParsedDraft({
+                          ...parsedDraft,
+                          unit: newUnit,
+                          inserted_by: newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha",
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
+                      <option value="Unit 2">Unit 2 - Prof. M. Sivasankar</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Stent Laterality (Side)
+                    </label>
+                    <select
+                      value={parsedDraft.laterality}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as Laterality })}
+                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="Right">Right Kidney</option>
+                      <option value="Left">Left Kidney</option>
+                      <option value="Bilateral">Bilateral</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Stent Material
+                    </label>
+                    <select
+                      value={parsedDraft.material}
+                      onChange={(e) => {
+                        const newMat = e.target.value as StentMaterial;
+                        const today = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
+                        const days = newMat === "Regular" ? 90 : newMat === "Carbothane" ? 180 : 365;
+                        const d = new Date(today);
+                        d.setDate(d.getDate() + days);
+                        const newPlanned = d.toISOString().split("T")[0];
+
+                        setParsedDraft({
+                          ...parsedDraft,
+                          material: newMat,
+                          planned_removal_date: newPlanned,
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                    >
+                      <option value="Regular">Regular Polyurethane (90 Days)</option>
+                      <option value="Carbothane">Carbothane (180 Days)</option>
+                      <option value="Silicone">Silicone Long-term (365 Days)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Insertion Date
+                    </label>
+                    <input
+                      type="date"
+                      value={parsedDraft.insertion_date}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, insertion_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-semibold text-slate-800"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Planned Removal Due Date (Auto)
+                    </label>
+                    <input
+                      type="date"
+                      value={parsedDraft.planned_removal_date}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
+                      className="w-full px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-xl font-bold text-indigo-950"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                      Operating Surgeon / Head
+                    </label>
+                    <input
+                      type="text"
+                      value={parsedDraft.inserted_by}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, inserted_by: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-medium text-slate-800"
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">Phone</label>
-                  <input
-                    type="text"
-                    value={parsedDraft.phone}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, phone: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg font-semibold"
-                  />
-                </div>
+                <div className="flex items-center justify-between pt-4 mt-3 border-t border-indigo-200">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="ocr_res_stone"
+                      checked={parsedDraft.residual_stone}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, residual_stone: e.target.checked })}
+                      className="w-4 h-4 text-indigo-600 rounded"
+                    />
+                    <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 cursor-pointer">
+                      Residual Stone Present (Needs clearance check)
+                    </label>
+                  </div>
 
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">Side (Laterality)</label>
-                  <select
-                    value={parsedDraft.laterality}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as any })}
-                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg font-bold text-indigo-900"
+                  <button
+                    type="button"
+                    onClick={handleSaveOcrDraft}
+                    disabled={ocrSaving || ocrSuccess}
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50 flex items-center space-x-2"
                   >
-                    <option value="Right">Right Kidney</option>
-                    <option value="Left">Left Kidney</option>
-                    <option value="Bilateral">Bilateral</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">Material</label>
-                  <select
-                    value={parsedDraft.material}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, material: e.target.value as any })}
-                    className="w-full px-2.5 py-1.5 bg-white border border-indigo-200 rounded-lg font-bold"
-                  >
-                    <option value="Regular">Regular (90d)</option>
-                    <option value="Carbothane">Carbothane (180d)</option>
-                    <option value="Silicone">Silicone (365d)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-bold text-slate-600 uppercase">Due Date (Auto)</label>
-                  <input
-                    type="date"
-                    value={parsedDraft.planned_removal_date}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
-                    className="w-full px-2.5 py-1.5 bg-indigo-100 border border-indigo-300 rounded-lg font-bold text-indigo-950"
-                  />
+                    {ocrSuccess ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                        <span>Stent Registered to Database!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>{ocrSaving ? "Saving..." : "1-Tap Confirm & Register"}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="ocr_res_stone"
-                    checked={parsedDraft.residual_stone}
-                    onChange={(e) => setParsedDraft({ ...parsedDraft, residual_stone: e.target.checked })}
-                    className="w-4 h-4 text-indigo-600 rounded"
-                  />
-                  <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 cursor-pointer">
-                    Residual Stone Present
-                  </label>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleSaveOcrDraft}
-                  disabled={ocrSaving || ocrSuccess}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50 flex items-center space-x-2"
-                >
-                  {ocrSuccess ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                      <span>Stent Ingested Successfully!</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-4 h-4" />
-                      <span>{ocrSaving ? "Saving..." : "1-Tap Confirm & Register"}</span>
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           )}
         </div>

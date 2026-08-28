@@ -51,7 +51,7 @@ export default function QuickAddStentPage() {
     calculatePlannedRemovalDate(format(new Date(), "yyyy-MM-dd"), "Regular")
   );
   const [residualStone, setResidualStone] = useState(false);
-  const [insertedBy, setInsertedBy] = useState("Dr. Arunkumar MS, MCh (Uro)");
+  const [insertedBy, setInsertedBy] = useState("Prof. N. Muthulatha");
   const [notes, setNotes] = useState("");
 
   // Dual Material Specific Fields (Left & Right independent)
@@ -669,17 +669,21 @@ export default function QuickAddStentPage() {
               </label>
               <select
                 value={unit}
-                onChange={(e) => setUnit(e.target.value as UnitType)}
+                onChange={(e) => {
+                  const newUnit = e.target.value as UnitType;
+                  setUnit(newUnit);
+                  setInsertedBy(newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha");
+                }}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
               >
-                <option value="Unit 1">Unit 1</option>
-                <option value="Unit 2">Unit 2</option>
+                <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
+                <option value="Unit 2">Unit 2 - Prof. M. Sivasankar</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Operating Surgeon / Doctor <span className="text-rose-500">*</span>
+                Operating Surgeon / Unit Head <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"

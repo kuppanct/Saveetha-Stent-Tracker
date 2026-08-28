@@ -10,7 +10,8 @@ import {
   Hospital,
   Sparkles,
   RefreshCw,
-  Bell
+  Bell,
+  BarChart3
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -57,6 +58,11 @@ export default function Navbar() {
       label: "Entry Hub (4 Channels)", 
       icon: Sparkles,
       highlight: true
+    },
+    {
+      href: "/statistics",
+      label: "Statistics",
+      icon: BarChart3,
     },
     { 
       href: "/whatsapp-center", 

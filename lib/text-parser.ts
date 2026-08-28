@@ -6,6 +6,9 @@ export interface ParsedStentEntry {
   uhid: string;
   name: string;
   phone: string;
+  gender?: string;
+  dob?: string;
+  blood_group?: string;
   address?: string;
   second_language: SecondLanguage;
   unit: UnitType;
@@ -34,14 +37,14 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
   // Remove command prefix
   const content = clean.replace(/^(#STENT|\/STENT|#DJ)\s+/i, "").trim();
 
-  // Extract key-value pairs if present or token sequence
   // Residual Stone
   const residualMatch = content.match(/Residual\s*:\s*(Yes|No|True|False|1|0)/i);
   const residual_stone = residualMatch ? /^(Yes|True|1)$/i.test(residualMatch[1]) : false;
 
-  // Unit
+  // Unit & Professor
   const unitMatch = content.match(/Unit\s*([12])/i);
   const unit: UnitType = unitMatch && unitMatch[1] === "2" ? "Unit 2" : "Unit 1";
+  const defaultProf = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
 
   // Laterality
   let laterality: Laterality = "Right";
@@ -60,7 +63,7 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
   const phone = phoneMatch ? phoneMatch[1] : "9840123456";
 
   // UHID
-  const uhidMatch = content.match(/\b(SMCH[-\d]+|\d{6,10})\b/i);
+  const uhidMatch = content.match(/\b(SMCH[-\d]+|\d{6,14})\b/i);
   const uhid = uhidMatch ? uhidMatch[1].toUpperCase() : `SMCH-${Math.floor(100000 + Math.random() * 900000)}`;
 
   // Indication
@@ -68,7 +71,6 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
   const indication = indicationMatch ? indicationMatch[1].toUpperCase() : "Urology Procedure";
 
   // Remaining tokens for patient name
-  // Remove known tokens from string to isolate the patient name
   let nameStr = content
     .replace(/^(#STENT|\/STENT|#DJ)/i, "")
     .replace(/Residual\s*:\s*(Yes|No|True|False|1|0)/i, "")
@@ -77,10 +79,9 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
     .replace(/\b(Regular|Carbothane|Silicone|Polyurethane|PU|Standard)\b/gi, "")
     .replace(/\b(RIRS|URSL|PCNL|ESWL|Pyeloplasty|Stricture|Transplant)\b/gi, "")
     .replace(/\b[6-9]\d{9}\b/g, "")
-    .replace(/\b(SMCH[-\d]+|\d{6,10})\b/gi, "")
+    .replace(/\b(SMCH[-\d]+|\d{6,14})\b/gi, "")
     .trim();
 
-  // Clean extra punctuation and spaces
   nameStr = nameStr.replace(/[^a-zA-Z\s]/g, " ").replace(/\s+/g, " ").trim();
   const name = nameStr.length > 2 ? nameStr : "Patient";
 
@@ -100,7 +101,7 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
       insertion_date: today,
       planned_removal_date: plannedRemoval,
       residual_stone,
-      inserted_by: "Dr. Saveetha Urology Team",
+      inserted_by: defaultProf,
       indication,
       notes: `Ingested via OT Bot. Indication: ${indication}`,
       raw_text: message,
@@ -110,81 +111,115 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
 
 /**
  * Intelligent OCR Text Parser:
- * Extracts patient demographics, side, material, and procedure from photo OCR of
- * Viana Health OT notes, monitor screens, or handwritten OT register logbooks.
+ * Specially tuned for Saveetha / Viana Health Patient Profile modal cards:
+ * - FULL NAME -> Patient Name
+ * - PATIENT ID -> UHID (e.g. 260826056037)
+ * - CONTACT -> Mobile Phone Number (e.g. 6374989972)
+ * - GENDER, DOB, BLOOD GROUP
  */
 export function parseOCRText(ocrText: string): ParsedStentEntry {
   const text = ocrText || "";
   const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
 
-  // 1. UHID / Hospital No
+  // 1. Extract Patient ID / UHID
   let uhid = "";
-  const uhidMatch = text.match(/(?:UHID|IP|OP|HOSP|REG|MRN|NO)[.:\s-]*([A-Z0-9/-]{5,15})/i) ||
-    text.match(/\b(SMCH[-\d]+|\d{6,10})\b/i);
-  if (uhidMatch) {
-    uhid = uhidMatch[1].replace(/[^A-Za-z0-9-]/g, "").toUpperCase();
+  // Look for PATIENT ID followed by number or on next line
+  const patientIdRegex = /(?:PATIENT\s*ID|UHID|HOSPITAL\s*NO|IP\s*NO|MRN|REG\s*NO)[\s.:-]*([0-9A-Za-z-]{6,16})/i;
+  const patientIdMatch = text.match(patientIdRegex);
+  
+  if (patientIdMatch) {
+    uhid = patientIdMatch[1].trim();
   } else {
-    uhid = `SMCH-${Math.floor(100000 + Math.random() * 900000)}`;
+    // Look for lines containing "PATIENT ID" and check next line for numbers
+    const pIdIndex = lines.findIndex((l) => /PATIENT\s*ID/i.test(l));
+    if (pIdIndex !== -1 && lines[pIdIndex + 1]) {
+      const candidate = lines[pIdIndex + 1].replace(/[^0-9A-Za-z-]/g, "");
+      if (candidate.length >= 6) uhid = candidate;
+    }
   }
 
-  // 2. Patient Name
+  // Fallback: look for 10-12 digit sequence
+  if (!uhid) {
+    const rawDigits = text.match(/\b([0-9]{10,14})\b/);
+    if (rawDigits) uhid = rawDigits[1];
+    else uhid = `SMCH-${Math.floor(100000 + Math.random() * 900000)}`;
+  }
+
+  // 2. Extract FULL NAME
   let name = "";
-  const nameMatch = text.match(/(?:NAME|PATIENT|PT\s*NAME)[.:\s-]*([A-Za-z\s.]{3,30})/i);
-  if (nameMatch) {
-    name = nameMatch[1].trim();
+  const fullNameRegex = /(?:FULL\s*NAME|PATIENT\s*NAME|NAME)[\s.:-]*([A-Za-z\s.]{2,30})/i;
+  const fullNameMatch = text.match(fullNameRegex);
+
+  if (fullNameMatch && fullNameMatch[1].trim().length > 1 && !/PATIENT|CONTACT|GENDER|ABHA/i.test(fullNameMatch[1])) {
+    name = fullNameMatch[1].trim();
   } else {
-    // Fallback: look for clean alphabet line
-    const potentialName = lines.find((l) => /^[A-Z][a-z]+(\s+[A-Z][a-z]+)+$/.test(l) && !/hospital|saveetha|urology|doctor/i.test(l));
-    name = potentialName || "Patient (Review Name)";
+    // Check line after FULL NAME
+    const nameIndex = lines.findIndex((l) => /FULL\s*NAME/i.test(l));
+    if (nameIndex !== -1 && lines[nameIndex + 1]) {
+      const candidate = lines[nameIndex + 1].trim();
+      if (/^[A-Za-z\s.]+$/.test(candidate) && !/PATIENT|ID|CONTACT|ABHA/i.test(candidate)) {
+        name = candidate;
+      }
+    }
   }
 
-  // 3. Phone Number
-  let phone = "9840123456";
-  const phoneMatch = text.match(/\b([6-9]\d{9})\b/);
-  if (phoneMatch) {
-    phone = phoneMatch[1];
+  // Fallback: Header name if visible
+  if (!name || name.length < 2) {
+    const candidateName = lines.find((l) => /^[A-Z][a-z]+(\s+[A-Z][a-z]*)*$/.test(l) && !/information|insurance|transactions|contact|patient|close|profile/i.test(l));
+    name = candidateName || "Patient";
   }
 
-  // 4. Laterality
+  // 3. Extract CONTACT / Phone Number
+  let phone = "";
+  const contactRegex = /(?:CONTACT|PHONE|MOBILE|CELL)[\s.:-]*([6-9]\d{9})/i;
+  const contactMatch = text.match(contactRegex);
+
+  if (contactMatch) {
+    phone = contactMatch[1];
+  } else {
+    // Check line after CONTACT
+    const contactIndex = lines.findIndex((l) => /CONTACT/i.test(l));
+    if (contactIndex !== -1 && lines[contactIndex + 1]) {
+      const candidate = lines[contactIndex + 1].replace(/\D/g, "");
+      if (candidate.length === 10) phone = candidate;
+    }
+  }
+
+  // Generic 10 digit search starting with 6-9
+  if (!phone) {
+    const rawPhones = text.match(/\b([6-9]\d{9})\b/g);
+    if (rawPhones && rawPhones.length > 0) {
+      phone = rawPhones[0];
+    } else {
+      phone = "9840123456";
+    }
+  }
+
+  // 4. Extract Gender, DOB, Blood Group if present
+  let gender = "";
+  if (/MALE/i.test(text)) gender = "Male";
+  else if (/FEMALE/i.test(text)) gender = "Female";
+
+  let dob = "";
+  const dobMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+  if (dobMatch) dob = dobMatch[1];
+
+  let blood_group = "";
+  const bgMatch = text.match(/\b(A|B|AB|O)[+-]\b/i);
+  if (bgMatch) blood_group = bgMatch[0].toUpperCase();
+
+  // 5. Default Unit to Unit 1 (Prof. N. Muthulatha)
+  const unit: UnitType = /unit\s*2|sivasankar/i.test(text) ? "Unit 2" : "Unit 1";
+  const defaultSurgeon = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+
+  // 6. Stent side & material defaults (User / Resident completes in verification card)
   let laterality: Laterality = "Right";
-  if (/\b(Left|Lt|Left Kidney)\b/i.test(text)) {
-    laterality = "Left";
-  } else if (/\b(Bilateral|Both|Bilat)\b/i.test(text)) {
-    laterality = "Bilateral";
-  } else if (/\b(Right|Rt|Right Kidney)\b/i.test(text)) {
-    laterality = "Right";
-  }
+  if (/\b(Left|Lt)\b/i.test(text)) laterality = "Left";
+  else if (/\b(Bilateral|Both)\b/i.test(text)) laterality = "Bilateral";
 
-  // 5. Stent Material
   let material: StentMaterial = "Regular";
-  if (/silicone|silicon/i.test(text)) {
-    material = "Silicone";
-  } else if (/carbothane|carbo/i.test(text)) {
-    material = "Carbothane";
-  } else {
-    material = "Regular";
-  }
-
-  // 6. Residual Stone
-  const residual_stone = /residual\s*(?:stone|calculus)?\s*(?:yes|present|\+ve|true)/i.test(text) ||
-    /stone\s*in\s*situ/i.test(text);
-
-  // 7. Indication & Procedure
-  let indication = "Urology Stenting";
-  const indMatch = text.match(/\b(URSL|PCNL|RIRS|ESWL|Pyeloplasty|Stricture|Transplant|Calculus|Ureteroscopy)\b/i);
-  if (indMatch) {
-    indication = indMatch[1].toUpperCase();
-  }
-
-  // 8. Unit
-  const unit: UnitType = /unit\s*2/i.test(text) ? "Unit 2" : "Unit 1";
-
-  // 9. Surgeon
-  let inserted_by = "Dr. Arunkumar MS, MCh (Uro)";
-  const surgeonMatch = text.match(/(?:Dr\.?|Surgeon|Operator)[.:\s-]*([A-Za-z\s.]+)/i);
-  if (surgeonMatch) {
-    inserted_by = `Dr. ${surgeonMatch[1].trim()}`;
-  }
+  if (/silicone|silicon/i.test(text)) material = "Silicone";
+  else if (/carbothane|carbo/i.test(text)) material = "Carbothane";
 
   const today = format(new Date(), "yyyy-MM-dd");
   const plannedRemoval = calculatePlannedRemovalDate(today, material);
@@ -193,16 +228,19 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
     uhid,
     name,
     phone,
-    second_language: /hindi/i.test(text) ? "Hindi" : "Tamil",
+    gender,
+    dob,
+    blood_group,
+    second_language: "Tamil",
     unit,
     laterality,
     material,
     insertion_date: today,
     planned_removal_date: plannedRemoval,
-    residual_stone,
-    inserted_by,
-    indication,
-    notes: `Extracted via Camera OCR (Viana/OT Register). Procedure: ${indication}`,
-    raw_text: ocrText,
+    residual_stone: false,
+    inserted_by: defaultSurgeon,
+    indication: "Urology Stenting",
+    notes: `Extracted from Patient Card. Demographics parsed from EMR screenshot.`,
+    raw_text: text,
   };
 }
