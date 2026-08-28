@@ -8,8 +8,12 @@ export const metadata: Metadata = {
   description: "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon.svg",
-    apple: "/icon.svg",
+    icon: [
+      { url: "/icon.png?v=3", type: "image/png" },
+      { url: "/favicon.ico?v=3", sizes: "any" }
+    ],
+    shortcut: "/icon.png?v=3",
+    apple: "/icon.png?v=3",
   },
 };
 
@@ -29,6 +33,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png?v=3" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icon.png?v=3" />
+        <link rel="shortcut icon" href="/icon.png?v=3" />
+        <link rel="apple-touch-icon" href="/icon.png?v=3" />
+        
         <script src="https://cdn.tailwindcss.com"></script>
         <script
           dangerouslySetInnerHTML={{
