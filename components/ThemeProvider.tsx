@@ -23,7 +23,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     // Check saved theme or system preference
-    const saved = localStorage.getItem("stentguard-theme") as Theme | null;
+    const saved = localStorage.getItem("stentsync-theme") as Theme | null;
     if (saved) {
       setThemeState(saved);
       applyTheme(saved);

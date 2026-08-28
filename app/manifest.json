@@ -1,6 +1,6 @@
 {
-  "name": "StentGuard • Saveetha Urology",
-  "short_name": "StentGuard",
+  "name": "StentSync • Saveetha Urology",
+  "short_name": "StentSync",
   "description": "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
   "start_url": "/",
   "display": "standalone",
@@ -8,9 +8,9 @@
   "theme_color": "#0d9488",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

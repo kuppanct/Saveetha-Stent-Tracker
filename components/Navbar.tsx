@@ -89,13 +89,13 @@ export default function Navbar() {
             <Link href="/" className="flex items-center space-x-3 group">
               <img
                 src="/icon.png"
-                alt="StentGuard Saveetha"
+                alt="StentSync Saveetha"
                 className="w-11 h-11 rounded-2xl object-cover shadow-md group-hover:scale-105 transition-transform border border-slate-700/50 bg-slate-900"
               />
 
               <div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-black text-lg tracking-tight text-white">StentGuard</span>
+                  <span className="font-black text-lg tracking-tight text-white">StentSync</span>
                   <span className="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-1.5 py-0.2 rounded border border-teal-500/30">
                     SAVEETHA
                   </span>

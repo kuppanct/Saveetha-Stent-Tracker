@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "StentGuard • Saveetha Urology",
+  title: "StentSync • Saveetha Urology",
   description: "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
   manifest: "/manifest.json",
   icons: {
