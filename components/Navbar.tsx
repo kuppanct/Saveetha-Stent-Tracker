@@ -88,9 +88,9 @@ export default function Navbar() {
             {/* Logo & Brand */}
             <Link href="/" className="flex items-center space-x-3 group">
               <img
-                src="/logo.png?v=5"
+                src="/logo.png?v=6"
                 alt="StentSync Saveetha Logo"
-                className="w-11 h-11 sm:w-12 sm:h-12 object-contain drop-shadow-md group-hover:scale-105 transition-transform"
+                className="w-11 h-11 sm:w-12 sm:h-12 object-cover rounded-2xl shadow-md border border-slate-700/60 group-hover:scale-105 transition-transform"
               />
 
               <div>

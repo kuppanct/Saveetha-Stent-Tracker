@@ -9,11 +9,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/icon.png?v=5", type: "image/png" },
-      { url: "/favicon.ico?v=5", sizes: "any" }
+      { url: "/icon.png?v=6", type: "image/png" },
+      { url: "/favicon.ico?v=6", sizes: "any" }
     ],
-    shortcut: "/icon.png?v=5",
-    apple: "/icon.png?v=5",
+    shortcut: "/icon.png?v=6",
+    apple: "/icon.png?v=6",
   },
 };
 
@@ -33,10 +33,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png?v=5" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/icon.png?v=5" />
-        <link rel="shortcut icon" href="/icon.png?v=5" />
-        <link rel="apple-touch-icon" href="/icon.png?v=5" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/icon.png?v=6" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/icon.png?v=6" />
+        <link rel="shortcut icon" href="/icon.png?v=6" />
+        <link rel="apple-touch-icon" href="/icon.png?v=6" />
         
         <script src="https://cdn.tailwindcss.com"></script>
         <script
