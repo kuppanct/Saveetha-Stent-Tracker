@@ -52,8 +52,8 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
   else if (/\b(Bilateral|Both|Bilat)\b/i.test(content)) laterality = "Bilateral";
   else if (/\b(Right|Rt)\b/i.test(content)) laterality = "Right";
 
-  // Stent Material
-  let material: StentMaterial = "Regular";
+  // Stent Material (Unit 1 defaults to Carbothane 180d, Unit 2 defaults to Regular 90d)
+  let material: StentMaterial = unit === "Unit 1" ? "Carbothane" : "Regular";
   if (/\b(Silicone|Silicon)\b/i.test(content)) material = "Silicone";
   else if (/\b(Carbothane|Carbo)\b/i.test(content)) material = "Carbothane";
   else if (/\b(Regular|Polyurethane|PU|Standard)\b/i.test(content)) material = "Regular";
@@ -112,75 +112,108 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
 /**
  * Intelligent OCR Text Parser:
  * Specially tuned for Saveetha / Viana Health Patient Profile modal cards:
- * - FULL NAME -> Patient Name
- * - PATIENT ID -> UHID (e.g. 260826056037)
- * - CONTACT -> Mobile Phone Number (e.g. 6374989972)
+ * - FULL NAME -> Patient Name (e.g. "Anitha", "Kumar K")
+ * - PATIENT ID -> UHID (e.g. "260826055322", "260826056037")
+ * - CONTACT -> Mobile Phone Number (e.g. "9566144061")
  * - GENDER, DOB, BLOOD GROUP
+ * - Unit 1 (Prof. N. Muthulatha) defaults material to Carbothane (180 days)
  */
 export function parseOCRText(ocrText: string): ParsedStentEntry {
   const text = ocrText || "";
-  const lines = text.split("\n").map((l) => l.trim()).filter(Boolean);
+  const rawLines = text.split(/[\r\n]+/).map((l) => l.trim()).filter(Boolean);
 
   // 1. Extract Patient ID / UHID
   let uhid = "";
-  // Look for PATIENT ID followed by number or on next line
-  const patientIdRegex = /(?:PATIENT\s*ID|UHID|HOSPITAL\s*NO|IP\s*NO|MRN|REG\s*NO)[\s.:-]*([0-9A-Za-z-]{6,16})/i;
-  const patientIdMatch = text.match(patientIdRegex);
-  
-  if (patientIdMatch) {
-    uhid = patientIdMatch[1].trim();
-  } else {
-    // Look for lines containing "PATIENT ID" and check next line for numbers
-    const pIdIndex = lines.findIndex((l) => /PATIENT\s*ID/i.test(l));
-    if (pIdIndex !== -1 && lines[pIdIndex + 1]) {
-      const candidate = lines[pIdIndex + 1].replace(/[^0-9A-Za-z-]/g, "");
+  // Check direct line or regex pattern
+  for (const line of rawLines) {
+    const pIdMatch = line.match(/(?:PATIENT\s*ID|UHID|HOSPITAL\s*NO|IP\s*NO|MRN|REG\s*NO)[\s.:-]*([0-9A-Za-z-]{6,16})/i);
+    if (pIdMatch) {
+      uhid = pIdMatch[1].trim();
+      break;
+    }
+  }
+
+  if (!uhid) {
+    // Check line after "PATIENT ID"
+    const pIdIndex = rawLines.findIndex((l) => /^PATIENT\s*ID/i.test(l));
+    if (pIdIndex !== -1 && rawLines[pIdIndex + 1]) {
+      const candidate = rawLines[pIdIndex + 1].replace(/[^0-9A-Za-z-]/g, "");
       if (candidate.length >= 6) uhid = candidate;
     }
   }
 
-  // Fallback: look for 10-12 digit sequence
+  // Fallback: look for 10-14 digit sequence (e.g. 260826055322)
   if (!uhid) {
     const rawDigits = text.match(/\b([0-9]{10,14})\b/);
     if (rawDigits) uhid = rawDigits[1];
     else uhid = `SMCH-${Math.floor(100000 + Math.random() * 900000)}`;
   }
 
-  // 2. Extract FULL NAME
+  // 2. Extract FULL NAME accurately
   let name = "";
-  const fullNameRegex = /(?:FULL\s*NAME|PATIENT\s*NAME|NAME)[\s.:-]*([A-Za-z\s.]{2,30})/i;
-  const fullNameMatch = text.match(fullNameRegex);
 
-  if (fullNameMatch && fullNameMatch[1].trim().length > 1 && !/PATIENT|CONTACT|GENDER|ABHA/i.test(fullNameMatch[1])) {
-    name = fullNameMatch[1].trim();
-  } else {
-    // Check line after FULL NAME
-    const nameIndex = lines.findIndex((l) => /FULL\s*NAME/i.test(l));
-    if (nameIndex !== -1 && lines[nameIndex + 1]) {
-      const candidate = lines[nameIndex + 1].trim();
-      if (/^[A-Za-z\s.]+$/.test(candidate) && !/PATIENT|ID|CONTACT|ABHA/i.test(candidate)) {
+  // Priority A: Check if "FULL NAME" or "PATIENT NAME" is on the same line with the name
+  for (const line of rawLines) {
+    const nameMatch = line.match(/(?:FULL\s*NAME|PATIENT\s*NAME)[\s.:-]+([A-Za-z\s.]{2,40})/i);
+    if (nameMatch) {
+      let candidate = nameMatch[1].trim();
+      // Clean candidate of any accidental suffix keywords
+      candidate = candidate.replace(/\b(PATIENT|ID|ABHA|DATE|GENDER|CONTACT|MALE|FEMALE)\b.*/gi, "").trim();
+      if (candidate.length >= 2 && !/^(PATIENT|NAME|ID|ABHA|CONTACT)$/i.test(candidate)) {
         name = candidate;
+        break;
       }
     }
   }
 
-  // Fallback: Header name if visible
-  if (!name || name.length < 2) {
-    const candidateName = lines.find((l) => /^[A-Z][a-z]+(\s+[A-Z][a-z]*)*$/.test(l) && !/information|insurance|transactions|contact|patient|close|profile/i.test(l));
-    name = candidateName || "Patient";
+  // Priority B: "FULL NAME" is on its own line, check subsequent line
+  if (!name) {
+    const nameLabelIdx = rawLines.findIndex((l) => /^(FULL\s*NAME|PATIENT\s*NAME)$/i.test(l));
+    if (nameLabelIdx !== -1) {
+      for (let i = nameLabelIdx + 1; i <= Math.min(nameLabelIdx + 3, rawLines.length - 1); i++) {
+        const line = rawLines[i].trim();
+        // Ignore lines that are clearly other field labels or dashes
+        if (/^(PATIENT\s*ID|ABHA|DATE|GENDER|BLOOD|CONTACT|MEDICAL|WALLET|PROFILE|-|—)$/i.test(line)) {
+          continue;
+        }
+        if (/^[A-Za-z\s.]{2,40}$/.test(line)) {
+          name = line;
+          break;
+        }
+      }
+    }
   }
+
+  // Priority C: Look for a clean Name right before the UHID or at top of card
+  if (!name) {
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i].trim();
+      if (
+        /^[A-Z][a-zA-Z\s.]{2,30}$/.test(line) &&
+        !/^(FULL|NAME|PATIENT|ID|ABHA|NUMBER|ADDRESS|DATE|BIRTH|MEDICAL|CONTACT|GENDER|FEMALE|MALE|BLOOD|GROUP|PROFILE|WALLET|SAVEETHA|HOSPITAL)$/i.test(line)
+      ) {
+        name = line;
+        break;
+      }
+    }
+  }
+
+  if (!name) name = "Patient";
 
   // 3. Extract CONTACT / Phone Number
   let phone = "";
-  const contactRegex = /(?:CONTACT|PHONE|MOBILE|CELL)[\s.:-]*([6-9]\d{9})/i;
-  const contactMatch = text.match(contactRegex);
+  for (const line of rawLines) {
+    const contactMatch = line.match(/(?:CONTACT|PHONE|MOBILE|CELL)[\s.:-]*([6-9]\d{9})/i);
+    if (contactMatch) {
+      phone = contactMatch[1];
+      break;
+    }
+  }
 
-  if (contactMatch) {
-    phone = contactMatch[1];
-  } else {
-    // Check line after CONTACT
-    const contactIndex = lines.findIndex((l) => /CONTACT/i.test(l));
-    if (contactIndex !== -1 && lines[contactIndex + 1]) {
-      const candidate = lines[contactIndex + 1].replace(/\D/g, "");
+  if (!phone) {
+    const contactIdx = rawLines.findIndex((l) => /^CONTACT/i.test(l));
+    if (contactIdx !== -1 && rawLines[contactIdx + 1]) {
+      const candidate = rawLines[contactIdx + 1].replace(/\D/g, "");
       if (candidate.length === 10) phone = candidate;
     }
   }
@@ -197,8 +230,8 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
 
   // 4. Extract Gender, DOB, Blood Group if present
   let gender = "";
-  if (/MALE/i.test(text)) gender = "Male";
-  else if (/FEMALE/i.test(text)) gender = "Female";
+  if (/FEMALE/i.test(text)) gender = "Female";
+  else if (/MALE/i.test(text)) gender = "Male";
 
   let dob = "";
   const dobMatch = text.match(/\b(\d{4}-\d{2}-\d{2})\b/);
@@ -212,17 +245,19 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
   const unit: UnitType = /unit\s*2|sivasankar/i.test(text) ? "Unit 2" : "Unit 1";
   const defaultSurgeon = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
 
-  // 6. Stent side & material defaults (User / Resident completes in verification card)
+  // 6. Stent side & material defaults:
+  // USER REQUEST: For Unit 1, default material to Carbothane (180 days) to reduce time taken!
   let laterality: Laterality = "Right";
   if (/\b(Left|Lt)\b/i.test(text)) laterality = "Left";
   else if (/\b(Bilateral|Both)\b/i.test(text)) laterality = "Bilateral";
 
-  let material: StentMaterial = "Regular";
-  if (/silicone|silicon/i.test(text)) material = "Silicone";
-  else if (/carbothane|carbo/i.test(text)) material = "Carbothane";
+  let material: StentMaterial = unit === "Unit 1" ? "Carbothane" : "Regular";
+  if (/\b(Silicone|Silicon)\b/i.test(text)) material = "Silicone";
+  else if (/\b(Regular|Polyurethane|PU)\b/i.test(text)) material = "Regular";
+  else if (/\b(Carbothane|Carbo)\b/i.test(text)) material = "Carbothane";
 
   const today = format(new Date(), "yyyy-MM-dd");
-  const plannedRemoval = calculatePlannedRemovalDate(today, material);
+  const planned_removal_date = calculatePlannedRemovalDate(today, material);
 
   return {
     uhid,
@@ -236,11 +271,12 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
     laterality,
     material,
     insertion_date: today,
-    planned_removal_date: plannedRemoval,
+    planned_removal_date,
     residual_stone: false,
     inserted_by: defaultSurgeon,
     indication: "Urology Stenting",
-    notes: `Extracted from Patient Card. Demographics parsed from EMR screenshot.`,
-    raw_text: text,
+    notes: `Viana EMR Extraction. ${gender ? `Gender: ${gender}. ` : ""}${dob ? `DOB: ${dob}. ` : ""}${blood_group ? `Blood Group: ${blood_group}` : ""}`,
+    confidence: 0.95,
+    raw_text: ocrText,
   };
 }

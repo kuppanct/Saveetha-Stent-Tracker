@@ -8,6 +8,7 @@ import CallLogModal from "@/components/CallLogModal";
 import RemovalModal from "@/components/RemovalModal";
 import ExchangeModal from "@/components/ExchangeModal";
 import MessagePreviewModal from "@/components/MessagePreviewModal";
+import EditStentModal from "@/components/EditStentModal";
 import { 
   Activity, 
   AlertOctagon, 
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [cronTriggering, setCronTriggering] = useState(false);
   const [cronNotification, setCronNotification] = useState<string | null>(null);
 
@@ -333,6 +335,10 @@ export default function Dashboard() {
           setSelectedStent(stent);
           setIsMsgModalOpen(true);
         }}
+        onEdit={(stent) => {
+          setSelectedStent(stent);
+          setIsEditModalOpen(true);
+        }}
       />
 
       {/* Modals */}
@@ -362,6 +368,15 @@ export default function Dashboard() {
         isOpen={isMsgModalOpen}
         onClose={() => setIsMsgModalOpen(false)}
       />
+
+      {selectedStent && (
+        <EditStentModal
+          stent={selectedStent}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => fetchData()}
+        />
+      )}
     </div>
   );
 }

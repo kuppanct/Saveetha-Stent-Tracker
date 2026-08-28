@@ -11,7 +11,8 @@ import {
   FileText,
   User,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Edit3
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -22,6 +23,7 @@ interface StentTableProps {
   onRemove: (stent: Stent) => void;
   onExchange: (stent: Stent) => void;
   onPreviewMessage: (stent: Stent) => void;
+  onEdit?: (stent: Stent) => void;
 }
 
 export default function StentTable({
@@ -31,6 +33,7 @@ export default function StentTable({
   onRemove,
   onExchange,
   onPreviewMessage,
+  onEdit,
 }: StentTableProps) {
   if (loading) {
     return (
@@ -133,36 +136,51 @@ export default function StentTable({
               </div>
 
               {/* Action Buttons */}
-              <div className="grid grid-cols-4 gap-1.5 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              <div className="grid grid-cols-5 gap-1 pt-1 border-t border-slate-100 dark:border-slate-800/80">
                 <button
                   onClick={() => onLogCall(stent)}
-                  className="py-2 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                  className="py-2 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  title="Log Call"
                 >
-                  <Phone className="w-3.5 h-3.5" />
+                  <Phone className="w-3.5 h-3.5 mb-0.5" />
                   <span>Call</span>
                 </button>
 
                 <button
                   onClick={() => onPreviewMessage(stent)}
-                  className="py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                  className="py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  title="WhatsApp Alert"
                 >
-                  <MessageSquare className="w-3.5 h-3.5" />
+                  <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
                   <span>WA</span>
                 </button>
 
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(stent)}
+                    className="py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                    title="Edit Record"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Edit</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => onExchange(stent)}
-                  className="py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                  className="py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  title="Exchange Stent"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <RefreshCw className="w-3.5 h-3.5 mb-0.5" />
                   <span>Exch</span>
                 </button>
 
                 <button
                   onClick={() => onRemove(stent)}
-                  className="py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white rounded-xl text-xs font-bold flex items-center justify-center space-x-1"
+                  className="py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  title="Mark Removed"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-3.5 h-3.5 mb-0.5" />
                   <span>Done</span>
                 </button>
               </div>
@@ -309,6 +327,16 @@ export default function StentTable({
                             >
                               <MessageSquare className="w-4 h-4" />
                             </button>
+
+                            {onEdit && (
+                              <button
+                                onClick={() => onEdit(stent)}
+                                title={`Edit Stent Record`}
+                                className="p-2 rounded-xl bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200 dark:border-amber-800 transition"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </button>
+                            )}
 
                             <button
                               onClick={() => onExchange(stent)}

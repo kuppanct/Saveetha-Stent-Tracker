@@ -14,11 +14,13 @@ import {
   RefreshCw,
   Search,
   Filter,
-  Layers
+  Layers,
+  Edit3
 } from "lucide-react";
 import MessagePreviewModal from "@/components/MessagePreviewModal";
 import RemovalModal from "@/components/RemovalModal";
 import ExchangeModal from "@/components/ExchangeModal";
+import EditStentModal from "@/components/EditStentModal";
 import { format, parseISO } from "date-fns";
 
 const OUTCOMES: CallOutcome[] = [
@@ -42,6 +44,7 @@ export default function TechnicianQueue() {
   const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const fetchQueue = useCallback(async () => {
     try {
@@ -299,9 +302,18 @@ export default function TechnicianQueue() {
                     >
                       <MessageSquare className="w-4 h-4" />
                       <span>Send {stent.laterality} WhatsApp Alert</span>
-                    </button>
-
-                    <div className="flex items-center space-x-1.5 pt-1">
+                    </button>                    <div className="flex items-center space-x-1.5 pt-1">
+                      <button
+                        onClick={() => {
+                          setSelectedStent(stent);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="flex-1 py-1.5 text-[11px] bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg font-semibold transition flex items-center justify-center space-x-1"
+                        title="Edit Stent Details"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
                       <button
                         onClick={() => {
                           setSelectedStent(stent);
@@ -349,23 +361,22 @@ export default function TechnicianQueue() {
                       className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                     />
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between pt-1">
                       {state.success ? (
-                        <span className="text-xs font-bold text-emerald-600 flex items-center space-x-1">
+                        <span className="text-xs font-bold text-emerald-600 flex items-center space-x-1 animate-fadeIn">
                           <CheckCircle2 className="w-4 h-4" />
                           <span>Call Logged!</span>
                         </span>
                       ) : (
-                        <span className="text-[11px] text-slate-400 italic">Saved to patient audit trail</span>
+                        <span className="text-[10px] text-slate-400">Save log after call</span>
                       )}
 
                       <button
-                        type="button"
                         onClick={() => handleSaveLog(stent)}
                         disabled={state.saving}
-                        className="px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-sm transition disabled:opacity-50"
+                        className="px-4 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-xs shadow-sm transition disabled:opacity-50"
                       >
-                        {state.saving ? "Saving..." : "Save Outcome"}
+                        {state.saving ? "Saving..." : "Submit Log"}
                       </button>
                     </div>
                   </div>
@@ -397,6 +408,15 @@ export default function TechnicianQueue() {
         onClose={() => setIsExchangeModalOpen(false)}
         onSuccess={() => fetchQueue()}
       />
+
+      {selectedStent && (
+        <EditStentModal
+          stent={selectedStent}
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          onSuccess={() => fetchQueue()}
+        />
+      )}
     </div>
   );
 }

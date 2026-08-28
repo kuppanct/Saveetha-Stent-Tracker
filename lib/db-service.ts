@@ -8,6 +8,10 @@ import {
   ExchangeStentInput,
   CallOutcome,
   DashboardStats,
+  SecondLanguage,
+  UnitType,
+  Laterality,
+  StentMaterial,
 } from "./types";
 import {
   calculatePlannedRemovalDate,
@@ -909,4 +913,103 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 export async function getTechnicianQueue(): Promise<Stent[]> {
   const allStents = await getStents({ status: "Active" });
   return allStents.filter((s) => (s.days_remaining ?? getDaysRemaining(s.planned_removal_date)) <= 0);
+}
+
+export async function updateStentAndPatient(
+  stentId: string,
+  input: Partial<{
+    name: string;
+    phone: string;
+    address: string;
+    second_language: SecondLanguage;
+    unit: UnitType;
+    laterality: Laterality;
+    material: StentMaterial;
+    insertion_date: string;
+    planned_removal_date: string;
+    residual_stone: boolean;
+    inserted_by: string;
+    notes: string;
+    indication: string;
+  }>
+): Promise<Stent> {
+  if (isSupabaseConfigured && supabase) {
+    // 1. Fetch current stent
+    const { data: currentStent, error: fetchErr } = await supabase
+      .from("stents")
+      .select("*, patient:patients(*)")
+      .eq("id", stentId)
+      .single();
+
+    if (fetchErr || !currentStent) {
+      throw new Error(`Stent not found: ${fetchErr?.message}`);
+    }
+
+    // 2. Update patient table
+    const patientUpdates: any = { updated_at: new Date().toISOString() };
+    if (input.name !== undefined) patientUpdates.name = input.name.trim();
+    if (input.phone !== undefined) patientUpdates.phone = input.phone.trim();
+    if (input.address !== undefined) patientUpdates.address = input.address?.trim() || null;
+    if (input.second_language !== undefined) patientUpdates.second_language = input.second_language;
+
+    if (Object.keys(patientUpdates).length > 1) {
+      await supabase
+        .from("patients")
+        .update(patientUpdates)
+        .eq("id", currentStent.patient_id);
+    }
+
+    // 3. Update stent table
+    const stentUpdates: any = { updated_at: new Date().toISOString() };
+    if (input.unit !== undefined) stentUpdates.unit = input.unit;
+    if (input.laterality !== undefined) stentUpdates.laterality = input.laterality;
+    if (input.material !== undefined) stentUpdates.material = input.material;
+    if (input.insertion_date !== undefined) stentUpdates.insertion_date = input.insertion_date;
+    if (input.planned_removal_date !== undefined) stentUpdates.planned_removal_date = input.planned_removal_date;
+    if (input.residual_stone !== undefined) stentUpdates.residual_stone = input.residual_stone;
+    if (input.inserted_by !== undefined) stentUpdates.inserted_by = input.inserted_by.trim();
+    if (input.notes !== undefined) stentUpdates.notes = input.notes?.trim() || null;
+    if (input.indication !== undefined) stentUpdates.indication = input.indication?.trim() || null;
+
+    const { data: updatedStent, error: updateErr } = await supabase
+      .from("stents")
+      .update(stentUpdates)
+      .eq("id", stentId)
+      .select("*, patient:patients(*)")
+      .single();
+
+    if (updateErr || !updatedStent) {
+      throw new Error(`Failed to update stent: ${updateErr?.message}`);
+    }
+
+    return enrichStent(updatedStent, updatedStent.patient);
+  }
+
+  // Local fallback
+  const sIdx = mockStents.findIndex((s) => s.id === stentId);
+  if (sIdx === -1) throw new Error("Stent not found");
+
+  const current = mockStents[sIdx];
+  const pIdx = mockPatients.findIndex((p) => p.id === current.patient_id);
+  if (pIdx !== -1) {
+    if (input.name) mockPatients[pIdx].name = input.name;
+    if (input.phone) mockPatients[pIdx].phone = input.phone;
+    if (input.address !== undefined) mockPatients[pIdx].address = input.address;
+    if (input.second_language) mockPatients[pIdx].second_language = input.second_language;
+  }
+
+  const pat = mockPatients[pIdx];
+  const updated: Stent = {
+    ...current,
+    unit: input.unit ?? current.unit,
+    laterality: input.laterality ?? current.laterality,
+    material: input.material ?? current.material,
+    insertion_date: input.insertion_date ?? current.insertion_date,
+    planned_removal_date: input.planned_removal_date ?? current.planned_removal_date,
+    residual_stone: input.residual_stone ?? current.residual_stone,
+    inserted_by: input.inserted_by ?? current.inserted_by,
+    notes: input.notes ?? current.notes,
+  };
+  mockStents[sIdx] = updated;
+  return enrichStent(updated, pat, mockStents);
 }

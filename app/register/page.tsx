@@ -45,10 +45,10 @@ export default function QuickAddStentPage() {
   // Single / Standard Stent Fields
   const [unit, setUnit] = useState<UnitType>("Unit 1");
   const [laterality, setLaterality] = useState<Laterality>("Right");
-  const [material, setMaterial] = useState<StentMaterial>("Regular");
+  const [material, setMaterial] = useState<StentMaterial>("Carbothane");
   const [insertionDate, setInsertionDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [plannedRemovalDate, setPlannedRemovalDate] = useState(
-    calculatePlannedRemovalDate(format(new Date(), "yyyy-MM-dd"), "Regular")
+    calculatePlannedRemovalDate(format(new Date(), "yyyy-MM-dd"), "Carbothane")
   );
   const [residualStone, setResidualStone] = useState(false);
   const [insertedBy, setInsertedBy] = useState("Prof. N. Muthulatha");
@@ -672,12 +672,16 @@ export default function QuickAddStentPage() {
                 onChange={(e) => {
                   const newUnit = e.target.value as UnitType;
                   setUnit(newUnit);
-                  setInsertedBy(newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha");
+                  const newDoctor = newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+                  const newMaterial: StentMaterial = newUnit === "Unit 1" ? "Carbothane" : "Regular";
+                  setInsertedBy(newDoctor);
+                  setMaterial(newMaterial);
+                  setPlannedRemovalDate(calculatePlannedRemovalDate(insertionDate, newMaterial));
                 }}
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
               >
-                <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
-                <option value="Unit 2">Unit 2 - Prof. M. Sivasankar</option>
+                <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Default: Carbothane 180d)</option>
+                <option value="Unit 2">Unit 2 - Prof. M. Sivasankar (Default: Regular 90d)</option>
               </select>
             </div>
 

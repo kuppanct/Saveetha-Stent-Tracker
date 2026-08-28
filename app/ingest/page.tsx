@@ -154,34 +154,15 @@ export default function IngestionHubPage() {
   // Load exact sample matching user's Viana Patient Card screenshot
   const loadSampleVianaCard = async () => {
     const sampleVianaScreenText = `
-Kumar K
-PATIENT PROFILE & WALLET
-
-FULL NAME
-Kumar K
-
-PATIENT ID
-260826056037
-
-ABHA NUMBER
--
-
-ABHA ADDRESS
--
-
-DATE OF BIRTH
-1977-04-10 (49Y)
-
+FULL NAME                              Anitha
+PATIENT ID                       260826055322
+ABHA NUMBER                                 -
+ABHA ADDRESS                                -
+DATE OF BIRTH                 1998-05-25 (28Y)
 MEDICAL & CONTACT
-
-GENDER
-MALE
-
-BLOOD GROUP
-O+
-
-CONTACT
-6374989972
+GENDER                                 FEMALE
+BLOOD GROUP                                B+
+CONTACT                            9566144061
     `;
 
     setOcrRawText(sampleVianaScreenText);
@@ -571,16 +552,25 @@ CONTACT
                       value={parsedDraft.unit}
                       onChange={(e) => {
                         const newUnit = e.target.value as UnitType;
+                        const newMat: StentMaterial = newUnit === "Unit 1" ? "Carbothane" : "Regular";
+                        const today = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
+                        const days = newMat === "Carbothane" ? 180 : 90;
+                        const d = new Date(today);
+                        d.setDate(d.getDate() + days);
+                        const newPlanned = d.toISOString().split("T")[0];
+
                         setParsedDraft({
                           ...parsedDraft,
                           unit: newUnit,
+                          material: newMat,
+                          planned_removal_date: newPlanned,
                           inserted_by: newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha",
                         });
                       }}
                       className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
-                      <option value="Unit 2">Unit 2 - Prof. M. Sivasankar</option>
+                      <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Carbothane 180d)</option>
+                      <option value="Unit 2">Unit 2 - Prof. M. Sivasankar (Regular 90d)</option>
                     </select>
                   </div>
 
