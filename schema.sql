@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS patients (
     name TEXT NOT NULL,
     phone VARCHAR(20) NOT NULL,
     address TEXT,
+    gender VARCHAR(15),
+    dob VARCHAR(30),
+    blood_group VARCHAR(10),
     second_language VARCHAR(10) NOT NULL CHECK (second_language IN ('Tamil', 'Hindi')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -33,6 +36,7 @@ CREATE TABLE IF NOT EXISTS stents (
     residual_stone BOOLEAN DEFAULT FALSE,
     inserted_by TEXT NOT NULL,
     indication TEXT,
+    notes TEXT,
     removal_notes TEXT,
     exchanged_from_id UUID REFERENCES stents(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
