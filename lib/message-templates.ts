@@ -98,7 +98,7 @@ export function buildBilingualMessage(
       break;
   }
 
-  const fullMessage = `🏥 *SAVEETHA MEDICAL COLLEGE & HOSPITAL*\n*Department of Urology*\n\n${englishPart}\n\n━━━━━━━━━━━━━━━━━━━━\n\n${regionalPart}\n\n📞 Urology Helpline / OPD: 044-66726672 / Saveetha Hospital Thandalam`;
+  const fullMessage = `🏥 *SAVEETHA MEDICAL COLLEGE & HOSPITAL*\n*Department of Urology*\n\n${englishPart}\n\n━━━━━━━━━━━━━━━━━━━━\n\n${regionalPart}\n\n📞 Urology Helpline / OPD: 044 6672 6618 / Saveetha Hospital Thandalam`;
 
   return { englishPart, regionalPart, fullMessage };
 }

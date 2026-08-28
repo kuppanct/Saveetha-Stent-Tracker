@@ -89,7 +89,7 @@ function generateBilingualMessage(triggerType, patient, stent) {
     }
   }
 
-  return `🏥 *SAVEETHA MEDICAL COLLEGE & HOSPITAL*\n*Department of Urology*\n\n${english}\n\n━━━━━━━━━━━━━━━━━━━━\n\n${regional}\n\n📞 Urology Helpline / OPD: 044-66726672 / Saveetha Hospital Thandalam`;
+  return `🏥 *SAVEETHA MEDICAL COLLEGE & HOSPITAL*\n*Department of Urology*\n\n${english}\n\n━━━━━━━━━━━━━━━━━━━━\n\n${regional}\n\n📞 Urology Helpline / OPD: 044 6672 6618 / Saveetha Hospital Thandalam`;
 }
 
 function evaluateTrigger(plannedRemovalDate) {
