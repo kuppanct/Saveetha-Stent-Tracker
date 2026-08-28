@@ -693,10 +693,10 @@ export default function QuickAddStentPage() {
                   setMaterial(newMaterial);
                   setPlannedRemovalDate(calculatePlannedRemovalDate(insertionDate, newMaterial));
                 }}
-                className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                className="w-full h-11 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white text-slate-900 dark:text-slate-100"
               >
-                <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Default: Carbothane 180d)</option>
-                <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar (Default: Regular 90d)</option>
+                <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
+                <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar</option>
               </select>
             </div>
 

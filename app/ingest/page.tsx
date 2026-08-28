@@ -541,7 +541,7 @@ export default function IngestionHubPage() {
                     <span>2. Surgery & Stent Details (Select & Confirm)</span>
                   </span>
                   <span className="text-[10px] text-slate-500 dark:text-slate-400 italic">
-                    Unit 1 defaults to Carbothane (180d)
+                    Unit Chief & Surgeon Assignment
                   </span>
                 </div>
 
@@ -573,8 +573,8 @@ export default function IngestionHubPage() {
                       }}
                       className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Carbothane 180d)</option>
-                      <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar (Regular 90d)</option>
+                      <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
+                      <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar</option>
                     </select>
                   </div>
 
