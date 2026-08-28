@@ -1,0 +1,16 @@
+{
+  "name": "Saveetha Urology DJ Stent Tracker",
+  "short_name": "Stent Tracker",
+  "description": "Double-J Stent tracking and prevention system for Saveetha Medical College & Hospital",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0284c7",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

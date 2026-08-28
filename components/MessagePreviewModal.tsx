@@ -1,0 +1,195 @@
+"use client";
+
+import { useState } from "react";
+import { Stent, SecondLanguage } from "@/lib/types";
+import { MessageSquare, X, Send, Copy, Check, ExternalLink } from "lucide-react";
+import { buildBilingualMessage, TemplateType } from "@/lib/message-templates";
+
+interface MessagePreviewModalProps {
+  stent: Stent | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function MessagePreviewModal({ stent, isOpen, onClose }: MessagePreviewModalProps) {
+  const [templateType, setTemplateType] = useState<TemplateType>("DUE_TODAY");
+  const [selectedLang, setSelectedLang] = useState<SecondLanguage>("Tamil");
+  const [copied, setCopied] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendSuccess, setSendSuccess] = useState<string | null>(null);
+
+  if (!isOpen || !stent) return null;
+
+  const currentLang = stent.patient?.second_language || selectedLang;
+
+  const { englishPart, regionalPart, fullMessage } = buildBilingualMessage(
+    templateType,
+    {
+      patientName: stent.patient?.name || "Patient",
+      laterality: stent.laterality,
+      insertionDate: stent.insertion_date,
+      dueDate: stent.planned_removal_date,
+    },
+    currentLang
+  );
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(fullMessage);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSendWhatsApp = async () => {
+    if (!stent.patient?.phone) return;
+    setSending(true);
+    setSendSuccess(null);
+    try {
+      const res = await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: stent.patient.phone,
+          message: fullMessage,
+          stent_id: stent.id,
+          patient_id: stent.patient_id,
+          trigger_type: templateType,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSendSuccess("WhatsApp message dispatched successfully!");
+      } else {
+        setSendSuccess(data.message || data.error || "Logged to notification records.");
+      }
+    } catch (e: any) {
+      setSendSuccess("Error contacting messaging service");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const waDirectUrl = `https://wa.me/91${stent.patient?.phone?.replace(/\D/g, "")}?text=${encodeURIComponent(fullMessage)}`;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[92vh]">
+        
+        {/* Header */}
+        <div className="bg-emerald-800 text-white px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-2 rounded-lg bg-emerald-900 text-emerald-200">
+              <MessageSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold">Bilingual WhatsApp Message Generator</h3>
+              <p className="text-xs text-emerald-200">
+                To: {stent.patient?.name} ({stent.patient?.phone}) | Language: {currentLang}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-emerald-200 hover:text-white hover:bg-emerald-900 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto space-y-4 flex-1">
+          {/* Template Selector */}
+          <div>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+              Select Message Category
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { type: "PRE_EXPIRY", label: "1. Pre-Expiry (T-30/14)" },
+                { type: "DUE_TODAY", label: "2. Due Today (T-0)" },
+                { type: "OVERDUE", label: "3. Overdue Alert" },
+                { type: "REMOVED", label: "4. Removal Confirmed" },
+              ].map((t) => (
+                <button
+                  type="button"
+                  key={t.type}
+                  onClick={() => setTemplateType(t.type as TemplateType)}
+                  className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition text-center ${
+                    templateType === t.type
+                      ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
+                      : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bilingual Message Preview Box */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Live Generated WhatsApp Payload
+              </span>
+              <span className="text-[11px] bg-slate-100 font-semibold px-2 py-0.5 rounded text-slate-600">
+                1st Half: English | 2nd Half: {currentLang}
+              </span>
+            </div>
+
+            <div className="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-4 text-xs font-mono text-slate-800 whitespace-pre-wrap leading-relaxed shadow-inner">
+              {fullMessage}
+            </div>
+          </div>
+
+          {sendSuccess && (
+            <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-800 font-medium">
+              ℹ️ {sendSuccess}
+            </div>
+          )}
+
+          <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+              >
+                {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+                <span>{copied ? "Copied!" : "Copy Text"}</span>
+              </button>
+
+              <a
+                href={waDirectUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="px-3.5 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+              >
+                <ExternalLink className="w-4 h-4" />
+                <span>Open in WhatsApp Web</span>
+              </a>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-medium transition"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSendWhatsApp}
+                disabled={sending}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm flex items-center space-x-1.5 transition disabled:opacity-50"
+              >
+                <Send className={`w-4 h-4 ${sending ? "animate-pulse" : ""}`} />
+                <span>{sending ? "Dispatching..." : "Send via WhatsApp"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
