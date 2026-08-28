@@ -82,6 +82,29 @@ body {
   color: #f8fafc !important;
 }
 
+/* Cross-Browser & Mobile iOS Date Picker Normalization */
+input[type="date"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  min-height: 44px !important;
+  height: 44px !important;
+  line-height: normal !important;
+  text-align: left !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  font-size: 0.875rem !important;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.25rem !important;
+  min-height: 1.25rem !important;
+  height: 1.25rem !important;
+}
+
 .dark input::placeholder,
 .dark textarea::placeholder {
   color: #64748b !important;

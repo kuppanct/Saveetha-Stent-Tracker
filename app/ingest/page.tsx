@@ -547,9 +547,11 @@ export default function IngestionHubPage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Urology Unit & Chief
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Urology Unit & Chief
+                      </label>
+                    </div>
                     <select
                       value={parsedDraft.unit}
                       onChange={(e) => {
@@ -569,7 +571,7 @@ export default function IngestionHubPage() {
                           inserted_by: newUnit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha",
                         });
                       }}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Carbothane 180d)</option>
                       <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar (Regular 90d)</option>
@@ -577,13 +579,15 @@ export default function IngestionHubPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Stent Laterality (Side)
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Stent Laterality (Side)
+                      </label>
+                    </div>
                     <select
                       value={parsedDraft.laterality}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as Laterality })}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Right">Right Kidney</option>
                       <option value="Left">Left Kidney</option>
@@ -592,9 +596,11 @@ export default function IngestionHubPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Stent Material
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Stent Material
+                      </label>
+                    </div>
                     <select
                       value={parsedDraft.material}
                       onChange={(e) => {
@@ -611,7 +617,7 @@ export default function IngestionHubPage() {
                           planned_removal_date: newPlanned,
                         });
                       }}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Carbothane">Carbothane (180 Days)</option>
                       <option value="Regular">Regular Polyurethane (90 Days)</option>
@@ -661,13 +667,15 @@ export default function IngestionHubPage() {
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Operating Surgeon
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Operating Surgeon
+                      </label>
+                    </div>
                     <select
                       value={parsedDraft.inserted_by}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, inserted_by: e.target.value })}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     >
                       {UROLOGY_SURGEONS.map((doc) => (
                         <option key={doc} value={doc}>
