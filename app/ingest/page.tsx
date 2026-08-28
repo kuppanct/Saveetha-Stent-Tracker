@@ -29,7 +29,7 @@ import { createWorker } from "tesseract.js";
 import { ParsedStentEntry } from "@/lib/text-parser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { UnitType, Laterality, StentMaterial } from "@/lib/types";
+import { UnitType, Laterality, StentMaterial, UROLOGY_SURGEONS } from "@/lib/types";
 
 type TabChannel = "FORM" | "BOT" | "OCR" | "CSV";
 
@@ -566,13 +566,13 @@ export default function IngestionHubPage() {
                           unit: newUnit,
                           material: newMat,
                           planned_removal_date: newPlanned,
-                          inserted_by: newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha",
+                          inserted_by: newUnit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha",
                         });
                       }}
                       className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Carbothane 180d)</option>
-                      <option value="Unit 2">Unit 2 - Prof. M. Sivasankar (Regular 90d)</option>
+                      <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar (Regular 90d)</option>
                     </select>
                   </div>
 
@@ -624,51 +624,69 @@ export default function IngestionHubPage() {
                     <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Insertion Date
                     </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={parsedDraft.insertion_date}
-                        onChange={(e) => {
-                          const newDate = e.target.value;
-                          const days = parsedDraft.material === "Carbothane" ? 180 : parsedDraft.material === "Silicone" ? 365 : 90;
-                          const d = new Date(newDate);
-                          d.setDate(d.getDate() + days);
-                          const newPlanned = d.toISOString().split("T")[0];
+                    <input
+                      type="date"
+                      value={parsedDraft.insertion_date}
+                      onChange={(e) => {
+                        const newDate = e.target.value;
+                        const days = parsedDraft.material === "Carbothane" ? 180 : parsedDraft.material === "Silicone" ? 365 : 90;
+                        const d = new Date(newDate);
+                        d.setDate(d.getDate() + days);
+                        const newPlanned = d.toISOString().split("T")[0];
 
-                          setParsedDraft({
-                            ...parsedDraft,
-                            insertion_date: newDate,
-                            planned_removal_date: newPlanned,
-                          });
-                        }}
-                        className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
-                      />
-                    </div>
+                        setParsedDraft({
+                          ...parsedDraft,
+                          insertion_date: newDate,
+                          planned_removal_date: newPlanned,
+                        });
+                      }}
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Planned Removal Due Date (Auto)
                     </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={parsedDraft.planned_removal_date}
-                        onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
-                        className="w-full h-10 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
-                      />
-                    </div>
+                    <input
+                      type="date"
+                      value={parsedDraft.planned_removal_date}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
+                      className="w-full h-10 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
+                    />
                   </div>
 
                   <div>
                     <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Operating Surgeon / Head
+                      Operating Surgeon
+                    </label>
+                    <select
+                      value={parsedDraft.inserted_by}
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, inserted_by: e.target.value })}
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {UROLOGY_SURGEONS.map((doc) => (
+                        <option key={doc} value={doc}>
+                          {doc}
+                        </option>
+                      ))}
+                      {!UROLOGY_SURGEONS.includes(parsedDraft.inserted_by as any) && parsedDraft.inserted_by && (
+                        <option value={parsedDraft.inserted_by}>{parsedDraft.inserted_by}</option>
+                      )}
+                    </select>
+                  </div>
+
+                  {/* Procedure Notes Input */}
+                  <div className="sm:col-span-2 lg:col-span-3">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                      Procedure Done / Clinical Notes
                     </label>
                     <input
                       type="text"
-                      value={parsedDraft.inserted_by}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, inserted_by: e.target.value })}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-medium text-slate-800 dark:text-slate-200"
+                      value={parsedDraft.notes || ""}
+                      placeholder="e.g. Left URSL + DJ Stenting for 10mm proximal calculus"
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, notes: e.target.value })}
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-medium text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
                 </div>

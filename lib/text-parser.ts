@@ -44,7 +44,7 @@ export function parseBotSyntax(message: string): { success: boolean; data?: Pars
   // Unit & Professor
   const unitMatch = content.match(/Unit\s*([12])/i);
   const unit: UnitType = unitMatch && unitMatch[1] === "2" ? "Unit 2" : "Unit 1";
-  const defaultProf = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+  const defaultProf = unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
 
   // Laterality
   let laterality: Laterality = "Right";
@@ -266,7 +266,7 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
 
   // 6. Default Unit to Unit 1 (Prof. N. Muthulatha)
   const unit: UnitType = /unit\s*2|sivasankar/i.test(text) ? "Unit 2" : "Unit 1";
-  const defaultSurgeon = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+  const defaultSurgeon = unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
 
   // 6. Stent side & material defaults:
   // USER REQUEST: For Unit 1, default material to Carbothane (180 days) to reduce time taken!

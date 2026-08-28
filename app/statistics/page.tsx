@@ -76,7 +76,7 @@ export default function StatisticsPage() {
   const downloadAuditReport = () => {
     let csv = "UHID,Patient Name,Phone,Unit,Head Professor,Side,Material,Status,Insertion Date,Planned Due Date,Days Remaining,Residual Stone,Surgeon\n";
     stents.forEach((s) => {
-      const prof = s.unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+      const prof = s.unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
       csv += `"${s.patient?.uhid || ""}","${s.patient?.name || ""}","${s.patient?.phone || ""}","${s.unit}","${prof}","${s.laterality}","${s.material}","${s.status}","${s.insertion_date}","${s.planned_removal_date}","${s.days_remaining ?? ""}","${s.residual_stone ? "Yes" : "No"}","${s.inserted_by}"\n`;
     });
 
@@ -103,7 +103,7 @@ export default function StatisticsPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Department of Urology • Saveetha Medical College & Hospital • Unit 1 (Prof. N. Muthulatha) & Unit 2 (Prof. M. Sivasankar)
+            Department of Urology • Saveetha Medical College & Hospital • Unit 1 (Prof. N. Muthulatha) & Unit 2 (Prof. M. Siva Sankar)
           </p>
         </div>
 
@@ -232,14 +232,14 @@ export default function StatisticsPage() {
               </div>
             </div>
 
-            {/* Unit 2: Prof. M. Sivasankar */}
+            {/* Unit 2: Prof. M. Siva Sankar */}
             <div className="bg-white rounded-2xl border-2 border-indigo-200 shadow-sm p-6 space-y-4">
               <div className="flex items-start justify-between pb-3 border-b border-slate-100">
                 <div>
                   <span className="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md uppercase">
                     Urology Unit 2
                   </span>
-                  <h3 className="text-lg font-black text-slate-900 mt-1">Prof. M. Sivasankar</h3>
+                  <h3 className="text-lg font-black text-slate-900 mt-1">Prof. M. Siva Sankar</h3>
                   <p className="text-xs text-slate-500">Unit Chief & Professor of Urology</p>
                 </div>
                 <span className="text-2xl font-black text-indigo-700">{unit2Stents.length} <span className="text-xs font-normal text-slate-500">Stents</span></span>

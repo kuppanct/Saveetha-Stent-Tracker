@@ -7,7 +7,8 @@ import {
   Laterality, 
   StentMaterial, 
   Stent, 
-  Patient 
+  Patient,
+  UROLOGY_SURGEONS 
 } from "@/lib/types";
 import { calculatePlannedRemovalDate, STENT_LIFESPANS } from "@/lib/stent-calculator";
 import { 
@@ -674,30 +675,37 @@ export default function QuickAddStentPage() {
                 onChange={(e) => {
                   const newUnit = e.target.value as UnitType;
                   setUnit(newUnit);
-                  const newDoctor = newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
+                  const newDoctor = newUnit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
                   const newMaterial: StentMaterial = newUnit === "Unit 1" ? "Carbothane" : "Regular";
                   setInsertedBy(newDoctor);
                   setMaterial(newMaterial);
                   setPlannedRemovalDate(calculatePlannedRemovalDate(insertionDate, newMaterial));
                 }}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
               >
                 <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Default: Carbothane 180d)</option>
-                <option value="Unit 2">Unit 2 - Prof. M. Sivasankar (Default: Regular 90d)</option>
+                <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar (Default: Regular 90d)</option>
               </select>
             </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Operating Surgeon / Unit Head <span className="text-rose-500">*</span>
+                Operating Surgeon <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
+              <select
                 value={insertedBy}
                 onChange={(e) => setInsertedBy(e.target.value)}
-                required
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
-              />
+                className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+              >
+                {UROLOGY_SURGEONS.map((doc) => (
+                  <option key={doc} value={doc}>
+                    {doc}
+                  </option>
+                ))}
+                {!UROLOGY_SURGEONS.includes(insertedBy as any) && insertedBy && (
+                  <option value={insertedBy}>{insertedBy}</option>
+                )}
+              </select>
             </div>
 
             <div className="sm:col-span-2">

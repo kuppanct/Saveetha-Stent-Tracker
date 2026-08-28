@@ -138,3 +138,15 @@ export interface DashboardStats {
   removedThisMonth: number;
   totalPatients: number;
 }
+
+export const UROLOGY_SURGEONS = [
+  "Prof. N. Muthulatha",
+  "Prof. M. Siva Sankar",
+  "Prof. M. Griffin",
+  "Dr. C. Dev Krishna Barathi",
+  "Dr. Mohammed Farooq",
+  "Dr. Arvind Ramachandran",
+  "Dr. Kuppan C T",
+] as const;
+
+export type UrologySurgeon = (typeof UROLOGY_SURGEONS)[number];

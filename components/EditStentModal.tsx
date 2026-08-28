@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Stent, Laterality, StentMaterial, UnitType, SecondLanguage } from "@/lib/types";
+import { Stent, Laterality, StentMaterial, UnitType, SecondLanguage, UROLOGY_SURGEONS } from "@/lib/types";
 import { calculatePlannedRemovalDate } from "@/lib/stent-calculator";
 import { 
   X, 
@@ -67,7 +67,7 @@ export default function EditStentModal({
       setMaterial("Carbothane");
       if (insertionDate) setPlannedRemovalDate(calculatePlannedRemovalDate(insertionDate, "Carbothane"));
     } else {
-      setInsertedBy("Prof. M. Sivasankar");
+      setInsertedBy("Prof. M. Siva Sankar");
       setMaterial("Regular");
       if (insertionDate) setPlannedRemovalDate(calculatePlannedRemovalDate(insertionDate, "Regular"));
     }
@@ -202,10 +202,10 @@ export default function EditStentModal({
                 <select
                   value={unit}
                   onChange={(e) => handleUnitChange(e.target.value as UnitType)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
                 >
                   <option value="Unit 1">Unit 1 - Prof. N. Muthulatha</option>
-                  <option value="Unit 2">Unit 2 - Prof. M. Sivasankar</option>
+                  <option value="Unit 2">Unit 2 - Prof. M. Siva Sankar</option>
                 </select>
               </div>
 
@@ -214,7 +214,7 @@ export default function EditStentModal({
                 <select
                   value={laterality}
                   onChange={(e) => setLaterality(e.target.value as Laterality)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
                 >
                   <option value="Right">Right Kidney</option>
                   <option value="Left">Left Kidney</option>
@@ -227,7 +227,7 @@ export default function EditStentModal({
                 <select
                   value={material}
                   onChange={(e) => handleMaterialChange(e.target.value as StentMaterial)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
                 >
                   <option value="Carbothane">Carbothane (180 Days)</option>
                   <option value="Regular">Regular Polyurethane (90 Days)</option>
@@ -242,7 +242,7 @@ export default function EditStentModal({
                   value={insertionDate}
                   onChange={(e) => handleInsertionDateChange(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
                 />
               </div>
 
@@ -253,19 +253,26 @@ export default function EditStentModal({
                   value={plannedRemovalDate}
                   onChange={(e) => setPlannedRemovalDate(e.target.value)}
                   required
-                  className="w-full px-3 py-2 bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-700 rounded-xl font-bold text-teal-900 dark:text-teal-200"
+                  className="w-full h-10 px-3 py-2 bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-700 rounded-xl font-bold text-teal-900 dark:text-teal-200"
                 />
               </div>
 
               <div>
                 <label className="block text-slate-600 dark:text-slate-400 font-bold mb-1">Operating Surgeon *</label>
-                <input
-                  type="text"
+                <select
                   value={insertedBy}
                   onChange={(e) => setInsertedBy(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
-                />
+                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                >
+                  {UROLOGY_SURGEONS.map((doc) => (
+                    <option key={doc} value={doc}>
+                      {doc}
+                    </option>
+                  ))}
+                  {!UROLOGY_SURGEONS.includes(insertedBy as any) && insertedBy && (
+                    <option value={insertedBy}>{insertedBy}</option>
+                  )}
+                </select>
               </div>
             </div>
 

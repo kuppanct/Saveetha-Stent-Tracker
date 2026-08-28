@@ -71,8 +71,8 @@ export default function StatsCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden p-5 rounded-2xl border shadow-sm transition-all duration-200 ${t.bg} ${t.border} ${
-        onClick ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5" : ""
+      className={`relative overflow-hidden p-4 sm:p-5 rounded-2xl border shadow-sm transition-all duration-200 min-w-[200px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
+        onClick ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]" : ""
       }`}
     >
       <div className="flex items-center justify-between">

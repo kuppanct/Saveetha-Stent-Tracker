@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "StentSync • Saveetha Urology",
-  description: "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
+  description: "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Siva Sankar)",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -87,7 +87,7 @@ export default function RootLayout({
                 🏥 <strong>Saveetha Medical College & Hospital</strong> • Department of Urology
               </p>
               <p className="text-slate-400 dark:text-slate-500">
-                Unit 1: Prof. N. Muthulatha • Unit 2: Prof. M. Sivasankar • 100% Free Open Stent Registry
+                Unit 1: Prof. N. Muthulatha • Unit 2: Prof. M. Siva Sankar • 100% Free Open Stent Registry
               </p>
             </div>
           </footer>
