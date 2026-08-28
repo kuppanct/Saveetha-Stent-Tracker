@@ -20,7 +20,9 @@ import {
   Phone,
   User,
   Calendar,
-  Layers
+  Layers,
+  Image as ImageIcon,
+  MapPin
 } from "lucide-react";
 import Papa from "papaparse";
 import { createWorker } from "tesseract.js";
@@ -49,7 +51,7 @@ export default function IngestionHubPage() {
   // CHANNEL 2: BOT SIMULATOR STATE
   // ==========================================
   const [botMessage, setBotMessage] = useState(
-    "#STENT 260826056037 Kumar K 6374989972 Right Regular RIRS Residual:No Unit1"
+    "#STENT 260826056037 Kumar K 6374989972 Right Carbothane RIRS Residual:No Unit1"
   );
   const [botTesting, setBotTesting] = useState(false);
   const [botResponse, setBotResponse] = useState<any>(null);
@@ -82,9 +84,9 @@ export default function IngestionHubPage() {
   const [parsedDraft, setParsedDraft] = useState<ParsedStentEntry | null>(null);
   const [ocrSaving, setOcrSaving] = useState(false);
   const [ocrSuccess, setOcrSuccess] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleImageUpload = async (file: File) => {
+  const handleImageFile = (file: File) => {
+    if (!file) return;
     const reader = new FileReader();
     reader.onload = async (e) => {
       const imgUrl = e.target?.result as string;
@@ -151,37 +153,6 @@ export default function IngestionHubPage() {
     }
   };
 
-  // Load exact sample matching user's Viana Patient Card screenshot
-  const loadSampleVianaCard = async () => {
-    const sampleVianaScreenText = `
-FULL NAME                              Anitha
-PATIENT ID                       260826055322
-ABHA NUMBER                                 -
-ABHA ADDRESS                                -
-DATE OF BIRTH                 1998-05-25 (28Y)
-MEDICAL & CONTACT
-GENDER                                 FEMALE
-BLOOD GROUP                                B+
-CONTACT                            9566144061
-    `;
-
-    setOcrRawText(sampleVianaScreenText);
-    setOcrScanning(true);
-    setOcrProgress(100);
-    setTimeout(async () => {
-      const res = await fetch("/api/ingest/ocr", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ocrText: sampleVianaScreenText }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setParsedDraft(data.parsed);
-      }
-      setOcrScanning(false);
-    }, 300);
-  };
-
   // ==========================================
   // CHANNEL 4: CSV BULK BACKLOG UPLOADER
   // ==========================================
@@ -221,7 +192,7 @@ CONTACT                            9566144061
   };
 
   const downloadSampleCsv = () => {
-    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Insertion Date,Residual Stone,Surgeon\n260826056037,Kumar K,6374989972,Right,Regular,Unit 1,2026-08-28,No,Prof. N. Muthulatha\nSMCH-2026-00902,Sita Devi,9876554433,Left,Carbothane,Unit 2,2026-08-15,Yes,Prof. M. Sivasankar\nSMCH-2026-00903,Praveen K,9444332211,Bilateral,Silicone,Unit 1,2026-08-10,No,Prof. N. Muthulatha";
+    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Insertion Date,Residual Stone,Surgeon\n260826056037,Kumar K,6374989972,Right,Carbothane,Unit 1,2026-08-28,No,Prof. N. Muthulatha\n260826055322,Anitha,9566144061,Left,Carbothane,Unit 1,2026-08-28,No,Prof. N. Muthulatha\nSMCH-2026-00902,Sita Devi,9876554433,Left,Regular,Unit 2,2026-08-15,Yes,Prof. M. Sivasankar";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -234,39 +205,39 @@ CONTACT                            9566144061
     <div className="max-w-5xl mx-auto space-y-6">
       
       {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center space-x-2">
-            <span className="p-2.5 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white">
+            <span className="p-2.5 rounded-xl bg-gradient-to-tr from-teal-600 to-indigo-600 text-white">
               <Sparkles className="w-5 h-5" />
             </span>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              Frictionless Data Entry & Ingestion Hub
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
+              Stent Entry Hub
             </h1>
           </div>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             4 redundant pathways designed to eliminate data entry fatigue • Unit 1 (Prof. N. Muthulatha) & Unit 2 (Prof. M. Sivasankar)
           </p>
         </div>
 
         <Link
           href="/"
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition self-start md:self-auto"
+          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition self-start md:self-auto"
         >
           ← Return to Dashboard
         </Link>
       </div>
 
       {/* 4 Pathway Channel Selector Tabs */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-200/70 p-1.5 rounded-2xl border border-slate-300">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
         
         {/* Channel 1 */}
         <Link
           href="/register"
-          className="flex items-center justify-center space-x-2 py-3 px-3 rounded-xl text-xs font-bold transition text-slate-700 hover:bg-white/80"
+          className="flex items-center justify-center space-x-2 py-3 px-3 rounded-xl text-xs font-bold transition text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700"
         >
           <PlusCircle className="w-4 h-4 text-sky-600" />
-          <span>1. Quick Form (PWA)</span>
+          <span>1. Quick Form</span>
         </Link>
 
         {/* Channel 2 */}
@@ -275,8 +246,8 @@ CONTACT                            9566144061
           onClick={() => setActiveTab("BOT")}
           className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "BOT"
-              ? "bg-white text-emerald-800 shadow-sm"
-              : "text-slate-700 hover:bg-white/80"
+              ? "bg-white dark:bg-slate-700 text-emerald-800 dark:text-emerald-300 shadow-sm"
+              : "text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700"
           }`}
         >
           <MessageSquare className="w-4 h-4 text-emerald-600" />
@@ -289,8 +260,8 @@ CONTACT                            9566144061
           onClick={() => setActiveTab("OCR")}
           className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "OCR"
-              ? "bg-white text-indigo-800 shadow-sm"
-              : "text-slate-700 hover:bg-white/80"
+              ? "bg-white dark:bg-slate-700 text-indigo-800 dark:text-indigo-300 shadow-sm"
+              : "text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700"
           }`}
         >
           <Camera className="w-4 h-4 text-indigo-600" />
@@ -303,8 +274,8 @@ CONTACT                            9566144061
           onClick={() => setActiveTab("CSV")}
           className={`flex items-center justify-center space-x-2 py-3 px-3 rounded-xl text-xs font-bold transition ${
             activeTab === "CSV"
-              ? "bg-white text-amber-900 shadow-sm"
-              : "text-slate-700 hover:bg-white/80"
+              ? "bg-white dark:bg-slate-700 text-amber-900 dark:text-amber-300 shadow-sm"
+              : "text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700"
           }`}
         >
           <FileSpreadsheet className="w-4 h-4 text-amber-600" />
@@ -316,42 +287,42 @@ CONTACT                            9566144061
           CHANNEL 2: WHATSAPP / TELEGRAM RESIDENT BOT
           ========================================================================= */}
       {activeTab === "BOT" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
                 <MessageSquare className="w-5 h-5 text-emerald-600" />
                 <span>OT Resident WhatsApp & Telegram Ingestion Bot</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Residents send a quick structured syntax message to the Department WhatsApp after scrubbing out.
               </p>
             </div>
             
             {/* Live Gateway Phone Info */}
-            <div className="bg-emerald-50 border border-emerald-300 rounded-xl p-2.5 text-xs text-emerald-950 flex items-center space-x-2 self-start">
-              <Phone className="w-4 h-4 text-emerald-700" />
+            <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl p-2.5 text-xs text-emerald-950 dark:text-emerald-200 flex items-center space-x-2 self-start">
+              <Phone className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
               <div>
                 <p className="font-bold">Send to Department WhatsApp:</p>
-                <p className="font-mono text-emerald-800">{connectedPhone ? `+${connectedPhone}` : "Scan QR in WhatsApp Center"}</p>
+                <p className="font-mono text-emerald-800 dark:text-emerald-300">{connectedPhone ? `+${connectedPhone}` : "Scan QR in WhatsApp Center"}</p>
               </div>
             </div>
           </div>
 
           {/* Syntax Guide Card */}
-          <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs space-y-2">
-            <p className="font-bold text-emerald-900">Standard Post-Op Syntax Format:</p>
-            <div className="bg-white p-3 rounded-xl font-mono text-emerald-800 border border-emerald-300 select-all">
+          <div className="bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 text-xs space-y-2">
+            <p className="font-bold text-emerald-900 dark:text-emerald-200">Standard Post-Op Syntax Format:</p>
+            <div className="bg-white dark:bg-slate-900 p-3 rounded-xl font-mono text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 select-all">
               #STENT &lt;UHID&gt; &lt;Patient Name&gt; &lt;Phone&gt; &lt;Side: Right/Left/Bilateral&gt; &lt;Material: Regular/Carbothane/Silicone&gt; &lt;Procedure: RIRS/URSL/PCNL&gt; Residual:&lt;Yes/No&gt; &lt;Unit1/Unit2&gt;
             </div>
-            <p className="text-[11px] text-emerald-700">
-              💡 <em>Example for Unit 1 (Prof. N. Muthulatha):</em> <code>#STENT 260826056037 Kumar K 6374989972 Right Regular RIRS Residual:No Unit1</code>
+            <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+              💡 <em>Example for Unit 1 (Prof. N. Muthulatha):</em> <code>#STENT 260826055322 Anitha 9566144061 Left Carbothane RIRS Residual:No Unit1</code>
             </p>
           </div>
 
           {/* Interactive Bot Simulator */}
           <div className="space-y-3">
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
               Test Live Bot Ingestion Console
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -359,7 +330,7 @@ CONTACT                            9566144061
                 type="text"
                 value={botMessage}
                 onChange={(e) => setBotMessage(e.target.value)}
-                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-semibold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-mono font-semibold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
               <button
                 type="button"
@@ -376,7 +347,7 @@ CONTACT                            9566144061
           {/* Bot Response Output */}
           {botResponse && (
             <div className={`p-4 rounded-2xl border text-xs space-y-2 animate-fadeIn ${
-              botResponse.success ? "bg-emerald-50 border-emerald-300 text-emerald-900" : "bg-rose-50 border-rose-300 text-rose-900"
+              botResponse.success ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200" : "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200"
             }`}>
               <div className="flex items-center space-x-2 font-bold text-sm">
                 {botResponse.success ? (
@@ -393,7 +364,7 @@ CONTACT                            9566144061
               </div>
 
               {botResponse.success ? (
-                <div className="bg-white p-3.5 rounded-xl border border-emerald-200 font-mono text-[11px] space-y-1">
+                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-800 font-mono text-[11px] space-y-1">
                   <p>👤 Patient: <strong>{botResponse.stent?.patient?.name}</strong> (UHID: {botResponse.stent?.patient?.uhid})</p>
                   <p>📍 Side: <strong>{botResponse.stent?.laterality}</strong> Kidney ({botResponse.stent?.material} Stent)</p>
                   <p>📅 Due Date: <strong>{botResponse.stent?.planned_removal_date}</strong> (Auto calculated)</p>
@@ -412,61 +383,78 @@ CONTACT                            9566144061
           CHANNEL 3: CAMERA OCR (VIANA HEALTH PATIENT PROFILE CARD SNAPPER)
           ========================================================================= */}
       {activeTab === "OCR" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
-                <Camera className="w-5 h-5 text-indigo-600" />
-                <span>Camera OCR Snapper (Viana Health Patient Profile Screen)</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Snap a photo of the Viana Patient Profile card. OCR automatically extracts <strong>Patient Name, UHID, and Phone Contact</strong>; staff simply pick the stent & unit details below to confirm!
-              </p>
-            </div>
-            
-            <button
-              type="button"
-              onClick={loadSampleVianaCard}
-              className="text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-800 font-bold px-3 py-1.5 rounded-xl border border-indigo-200 transition shrink-0"
-            >
-              Demo: Load Kumar K Profile Screen
-            </button>
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
+          <div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+              <Camera className="w-5 h-5 text-indigo-600" />
+              <span>Camera OCR Snapper (Viana Health Patient Profile Screen)</span>
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Snap a photo or upload a screenshot of the Viana Patient Profile card. OCR automatically extracts <strong>Patient Name, UHID, Contact Phone, and Residential Address</strong>!
+            </p>
           </div>
 
-          {/* Upload Dropzone & Camera Button */}
+          {/* Seamless Mobile & Desktop Upload Dropzone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-indigo-300 hover:border-indigo-500 bg-indigo-50/40 rounded-2xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center space-y-2 min-h-[160px]"
-            >
-              <Camera className="w-8 h-8 text-indigo-600" />
-              <p className="text-xs font-bold text-slate-800">
-                Snap Photo of Viana EMR Screen / OT Card
-              </p>
-              <p className="text-[11px] text-slate-500">
-                Auto-extracts FULL NAME, PATIENT ID, and CONTACT
-              </p>
-              <input
-                type="file"
-                ref={fileInputRef}
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => {
-                  if (e.target.files?.[0]) handleImageUpload(e.target.files[0]);
-                }}
-                className="hidden"
-              />
+            
+            <div className="border-2 border-dashed border-indigo-300 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-950/20 rounded-2xl p-6 text-center transition flex flex-col items-center justify-center space-y-3 min-h-[180px]">
+              <div className="p-3 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-300 rounded-2xl">
+                <Camera className="w-7 h-7" />
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Select Upload Method:
+                </p>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Works with gallery screenshots & live photos
+                </p>
+              </div>
+
+              {/* 2 Dedicated Upload Buttons for Mobile & Desktop */}
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1 w-full">
+                
+                {/* 1. Live Camera Snapper */}
+                <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-sm transition">
+                  <Camera className="w-4 h-4" />
+                  <span>Take Live Photo</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleImageFile(e.target.files[0]);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* 2. Gallery / Screenshot Picker (No capture restriction) */}
+                <label className="cursor-pointer inline-flex items-center space-x-1.5 px-3.5 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-700 rounded-xl text-xs font-bold shadow-sm transition">
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Gallery / Screenshot</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) handleImageFile(e.target.files[0]);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+
             </div>
 
             {/* OCR Processing & Progress */}
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col justify-center space-y-3">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+            <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex flex-col justify-center space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
                 <span>OCR Scanning Engine</span>
                 <span>{ocrScanning ? `${ocrProgress}%` : parsedDraft ? "✅ Extracted" : "Standby"}</span>
               </div>
 
               {ocrScanning && (
-                <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-indigo-600 h-2 transition-all duration-300"
                     style={{ width: `${ocrProgress}%` }}
@@ -475,7 +463,7 @@ CONTACT                            9566144061
               )}
 
               {ocrRawText && (
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200 max-h-24 overflow-y-auto text-[10px] font-mono text-slate-600">
+                <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 max-h-28 overflow-y-auto text-[10px] font-mono text-slate-600 dark:text-slate-400">
                   {ocrRawText}
                 </div>
               )}
@@ -484,48 +472,62 @@ CONTACT                            9566144061
 
           {/* Parsed 1-Tap Confirmation Card */}
           {parsedDraft && (
-            <div className="bg-indigo-50/70 border-2 border-indigo-300 rounded-2xl p-5 space-y-5 animate-fadeIn">
+            <div className="bg-indigo-50/70 dark:bg-indigo-950/30 border-2 border-indigo-300 dark:border-indigo-800 rounded-2xl p-5 space-y-5 animate-fadeIn">
               
               {/* Top: Demographics Extracted from Photo */}
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 mb-3">
-                  <span className="font-bold text-indigo-950 text-sm flex items-center space-x-2">
+                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 dark:border-indigo-800 mb-3">
+                  <span className="font-bold text-indigo-950 dark:text-indigo-200 text-sm flex items-center space-x-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     <span>1. Patient Demographics (Extracted from Photo)</span>
                   </span>
-                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-200">
+                  <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-700">
                     Auto-Extracted from Viana Screen
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">Patient ID / UHID</label>
                     <input
                       type="text"
                       value={parsedDraft.uhid}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, uhid: e.target.value })}
-                      className="w-full font-mono font-bold text-indigo-900 bg-transparent outline-none mt-0.5 text-sm"
+                      className="w-full font-mono font-bold text-indigo-900 dark:text-indigo-300 bg-transparent outline-none mt-0.5 text-sm"
                     />
                   </div>
 
-                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                  <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">Full Name</label>
                     <input
                       type="text"
                       value={parsedDraft.name}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, name: e.target.value })}
-                      className="w-full font-bold text-slate-900 bg-transparent outline-none mt-0.5 text-sm"
+                      className="w-full font-bold text-slate-900 dark:text-slate-100 bg-transparent outline-none mt-0.5 text-sm"
                     />
                   </div>
 
-                  <div className="bg-white p-2.5 rounded-xl border border-indigo-200">
+                  <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
                     <label className="block text-[10px] font-bold text-slate-500 uppercase">Contact Phone</label>
                     <input
                       type="text"
                       value={parsedDraft.phone}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, phone: e.target.value })}
-                      className="w-full font-bold text-emerald-800 bg-transparent outline-none mt-0.5 text-sm"
+                      className="w-full font-bold text-emerald-800 dark:text-emerald-300 bg-transparent outline-none mt-0.5 text-sm font-mono"
+                    />
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase flex items-center space-x-1">
+                      <MapPin className="w-3 h-3 text-slate-400" />
+                      <span>Address (Residential)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={parsedDraft.address || ""}
+                      placeholder="Residential address"
+                      onChange={(e) => setParsedDraft({ ...parsedDraft, address: e.target.value })}
+                      className="w-full font-medium text-slate-800 dark:text-slate-200 bg-transparent outline-none mt-0.5 text-xs truncate"
                     />
                   </div>
                 </div>
@@ -533,19 +535,19 @@ CONTACT                            9566144061
 
               {/* Bottom: Surgical & Stent Configuration (Staff selects) */}
               <div>
-                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 mb-3">
-                  <span className="font-bold text-indigo-950 text-sm flex items-center space-x-2">
+                <div className="flex items-center justify-between pb-2 border-b border-indigo-200 dark:border-indigo-800 mb-3">
+                  <span className="font-bold text-indigo-950 dark:text-indigo-200 text-sm flex items-center space-x-2">
                     <Layers className="w-4 h-4 text-indigo-600" />
                     <span>2. Surgery & Stent Details (Select & Confirm)</span>
                   </span>
-                  <span className="text-[10px] text-slate-500 italic">
-                    Fill surgical details for tracking
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                    Unit 1 defaults to Carbothane (180d)
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Urology Unit & Chief
                     </label>
                     <select
@@ -567,7 +569,7 @@ CONTACT                            9566144061
                           inserted_by: newUnit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha",
                         });
                       }}
-                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-indigo-950 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-indigo-950 dark:text-indigo-200 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Unit 1">Unit 1 - Prof. N. Muthulatha (Carbothane 180d)</option>
                       <option value="Unit 2">Unit 2 - Prof. M. Sivasankar (Regular 90d)</option>
@@ -575,13 +577,13 @@ CONTACT                            9566144061
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Stent Laterality (Side)
                     </label>
                     <select
                       value={parsedDraft.laterality}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, laterality: e.target.value as Laterality })}
-                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     >
                       <option value="Right">Right Kidney</option>
                       <option value="Left">Left Kidney</option>
@@ -590,7 +592,7 @@ CONTACT                            9566144061
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Stent Material
                     </label>
                     <select
@@ -598,7 +600,7 @@ CONTACT                            9566144061
                       onChange={(e) => {
                         const newMat = e.target.value as StentMaterial;
                         const today = parsedDraft.insertion_date || new Date().toISOString().split("T")[0];
-                        const days = newMat === "Regular" ? 90 : newMat === "Carbothane" ? 180 : 365;
+                        const days = newMat === "Carbothane" ? 180 : newMat === "Silicone" ? 365 : 90;
                         const d = new Date(today);
                         d.setDate(d.getDate() + days);
                         const newPlanned = d.toISOString().split("T")[0];
@@ -609,52 +611,69 @@ CONTACT                            9566144061
                           planned_removal_date: newPlanned,
                         });
                       }}
-                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-bold text-slate-900 focus:ring-2 focus:ring-indigo-500"
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500"
                     >
-                      <option value="Regular">Regular Polyurethane (90 Days)</option>
                       <option value="Carbothane">Carbothane (180 Days)</option>
+                      <option value="Regular">Regular Polyurethane (90 Days)</option>
                       <option value="Silicone">Silicone Long-term (365 Days)</option>
                     </select>
                   </div>
 
+                  {/* Symmetrical Aligned Date Pickers */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Insertion Date
                     </label>
-                    <input
-                      type="date"
-                      value={parsedDraft.insertion_date}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, insertion_date: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-semibold text-slate-800"
-                    />
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={parsedDraft.insertion_date}
+                        onChange={(e) => {
+                          const newDate = e.target.value;
+                          const days = parsedDraft.material === "Carbothane" ? 180 : parsedDraft.material === "Silicone" ? 365 : 90;
+                          const d = new Date(newDate);
+                          d.setDate(d.getDate() + days);
+                          const newPlanned = d.toISOString().split("T")[0];
+
+                          setParsedDraft({
+                            ...parsedDraft,
+                            insertion_date: newDate,
+                            planned_removal_date: newPlanned,
+                          });
+                        }}
+                        className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Planned Removal Due Date (Auto)
                     </label>
-                    <input
-                      type="date"
-                      value={parsedDraft.planned_removal_date}
-                      onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
-                      className="w-full px-3 py-2 bg-indigo-100 border border-indigo-300 rounded-xl font-bold text-indigo-950"
-                    />
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={parsedDraft.planned_removal_date}
+                        onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
+                        className="w-full h-10 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
                       Operating Surgeon / Head
                     </label>
                     <input
                       type="text"
                       value={parsedDraft.inserted_by}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, inserted_by: e.target.value })}
-                      className="w-full px-3 py-2 bg-white border border-indigo-200 rounded-xl font-medium text-slate-800"
+                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-medium text-slate-800 dark:text-slate-200"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 mt-3 border-t border-indigo-200">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 mt-3 border-t border-indigo-200 dark:border-indigo-800">
                   <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
@@ -663,7 +682,7 @@ CONTACT                            9566144061
                       onChange={(e) => setParsedDraft({ ...parsedDraft, residual_stone: e.target.checked })}
                       className="w-4 h-4 text-indigo-600 rounded"
                     />
-                    <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 cursor-pointer">
+                    <label htmlFor="ocr_res_stone" className="text-xs font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
                       Residual Stone Present (Needs clearance check)
                     </label>
                   </div>
@@ -672,7 +691,7 @@ CONTACT                            9566144061
                     type="button"
                     onClick={handleSaveOcrDraft}
                     disabled={ocrSaving || ocrSuccess}
-                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50 flex items-center space-x-2"
+                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition disabled:opacity-50 flex items-center justify-center space-x-2"
                   >
                     {ocrSuccess ? (
                       <>
@@ -698,14 +717,14 @@ CONTACT                            9566144061
           CHANNEL 4: CSV / EXCEL BULK BACKLOG UPLOADER
           ========================================================================= */}
       {activeTab === "CSV" && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
           <div className="flex items-start justify-between">
             <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
                 <FileSpreadsheet className="w-5 h-5 text-amber-600" />
                 <span>CSV / Excel Bulk Backlog Uploader</span>
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Import historical or backlog stent records in bulk with automated date parsing and deduplication checking.
               </p>
             </div>
@@ -713,7 +732,7 @@ CONTACT                            9566144061
             <button
               type="button"
               onClick={downloadSampleCsv}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold rounded-xl border border-amber-200 transition"
+              className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-900 dark:text-amber-200 text-xs font-bold rounded-xl border border-amber-200 dark:border-amber-800 transition"
             >
               <Download className="w-4 h-4" />
               <span>Download Template</span>
@@ -721,17 +740,17 @@ CONTACT                            9566144061
           </div>
 
           {/* File Selector */}
-          <div className="border-2 border-dashed border-amber-300 bg-amber-50/30 rounded-2xl p-6 text-center">
+          <div className="border-2 border-dashed border-amber-300 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 rounded-2xl p-6 text-center">
             <Upload className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-            <p className="text-xs font-bold text-slate-800">Select or Drag CSV File Here</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">Columns: UHID, Patient Name, Phone, Laterality, Material, Insertion Date, Residual Stone</p>
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Select or Drag CSV File Here</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Columns: UHID, Patient Name, Phone, Laterality, Material, Insertion Date, Residual Stone</p>
             <input
               type="file"
               accept=".csv"
               onChange={(e) => {
                 if (e.target.files?.[0]) handleCsvFileChange(e.target.files[0]);
               }}
-              className="mt-3 text-xs text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-700 cursor-pointer"
+              className="mt-3 text-xs text-slate-600 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-700 cursor-pointer"
             />
           </div>
 
@@ -739,7 +758,7 @@ CONTACT                            9566144061
           {csvPreview.length > 0 && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
                   Preview Backlog Records ({csvPreview.length} Rows)
                 </h4>
 
@@ -754,9 +773,9 @@ CONTACT                            9566144061
                 </button>
               </div>
 
-              <div className="border border-slate-200 rounded-xl overflow-x-auto max-h-60">
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto max-h-60">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 text-slate-700 font-bold sticky top-0">
+                  <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold sticky top-0">
                     <tr>
                       <th className="p-2.5">UHID</th>
                       <th className="p-2.5">Name</th>
@@ -766,9 +785,9 @@ CONTACT                            9566144061
                       <th className="p-2.5">Date</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {csvPreview.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50">
+                      <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                         <td className="p-2.5 font-bold">{row.UHID || row.uhid || "N/A"}</td>
                         <td className="p-2.5">{row["Patient Name"] || row.name || "N/A"}</td>
                         <td className="p-2.5">{row.Phone || row.phone || "N/A"}</td>
@@ -785,18 +804,18 @@ CONTACT                            9566144061
 
           {/* CSV Import Results Summary */}
           {csvResult && (
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-300 text-xs space-y-2 animate-fadeIn">
-              <div className="flex items-center space-x-2 font-bold text-slate-900">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-xs space-y-2 animate-fadeIn">
+              <div className="flex items-center space-x-2 font-bold text-slate-900 dark:text-slate-100">
                 <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                 <span>Bulk Import Complete</span>
               </div>
-              <div className="flex items-center space-x-4 font-semibold text-slate-700">
-                <span className="text-emerald-700">✅ Imported: {csvResult.imported}</span>
-                <span className="text-amber-700">⚠️ Duplicates Skipped: {csvResult.duplicates}</span>
-                <span className="text-rose-700">❌ Failed: {csvResult.failed}</span>
+              <div className="flex items-center space-x-4 font-semibold text-slate-700 dark:text-slate-300">
+                <span className="text-emerald-700 dark:text-emerald-400">✅ Imported: {csvResult.imported}</span>
+                <span className="text-amber-700 dark:text-amber-400">⚠️ Duplicates Skipped: {csvResult.duplicates}</span>
+                <span className="text-rose-700 dark:text-rose-400">❌ Failed: {csvResult.failed}</span>
               </div>
               {csvResult.errors?.length > 0 && (
-                <div className="text-[11px] text-rose-700 max-h-24 overflow-y-auto font-mono">
+                <div className="text-[11px] text-rose-700 dark:text-rose-400 max-h-24 overflow-y-auto font-mono">
                   {csvResult.errors.map((e: string, i: number) => (
                     <div key={i}>• {e}</div>
                   ))}

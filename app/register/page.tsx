@@ -465,7 +465,7 @@ export default function QuickAddStentPage() {
                         value={leftInsertionDate}
                         onChange={(e) => handleLeftInsertionDateChange(e.target.value)}
                         required
-                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                        className="w-full h-10 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
                       />
                     </div>
 
@@ -478,7 +478,7 @@ export default function QuickAddStentPage() {
                         value={leftPlannedDate}
                         onChange={(e) => setLeftPlannedDate(e.target.value)}
                         required
-                        className="w-full px-2.5 py-1.5 bg-sky-100 border border-sky-300 rounded-lg text-xs font-bold text-sky-900"
+                        className="w-full h-10 px-2.5 py-1.5 bg-sky-100 border border-sky-300 rounded-lg text-xs font-bold text-sky-900"
                       />
                     </div>
                   </div>
@@ -542,7 +542,7 @@ export default function QuickAddStentPage() {
                         value={rightInsertionDate}
                         onChange={(e) => handleRightInsertionDateChange(e.target.value)}
                         required
-                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                        className="w-full h-10 px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
                       />
                     </div>
 
@@ -555,7 +555,7 @@ export default function QuickAddStentPage() {
                         value={rightPlannedDate}
                         onChange={(e) => setRightPlannedDate(e.target.value)}
                         required
-                        className="w-full px-2.5 py-1.5 bg-purple-100 border border-purple-300 rounded-lg text-xs font-bold text-purple-900"
+                        className="w-full h-10 px-2.5 py-1.5 bg-purple-100 border border-purple-300 rounded-lg text-xs font-bold text-purple-900"
                       />
                     </div>
                   </div>
@@ -626,24 +626,26 @@ export default function QuickAddStentPage() {
                   value={insertionDate}
                   onChange={(e) => handleInsertionDateChange(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                  className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Planned Removal Date
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Planned Due Date
+                  </label>
+                  <span className="text-[10px] text-slate-500">
+                    +{STENT_LIFESPANS[material]}d ({material})
+                  </span>
+                </div>
                 <input
                   type="date"
                   value={plannedRemovalDate}
                   onChange={(e) => setPlannedRemovalDate(e.target.value)}
                   required
-                  className="w-full px-3.5 py-2.5 bg-sky-50/70 border border-sky-300 rounded-xl text-sm font-bold text-sky-900 focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                  className="w-full h-11 px-3.5 py-2.5 bg-sky-50/70 border border-sky-300 rounded-xl text-sm font-bold text-sky-900 focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                 />
-                <span className="text-[10px] text-slate-500">
-                  Default: +{STENT_LIFESPANS[material]} days ({material})
-                </span>
               </div>
 
               <div className="sm:col-span-2 flex items-center space-x-2.5 p-3 bg-amber-50 rounded-xl border border-amber-200">

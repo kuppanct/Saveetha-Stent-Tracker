@@ -54,14 +54,14 @@ export default function Navbar() {
     { href: "/", label: "Dashboard", icon: Activity },
     { 
       href: "/technician-queue", 
-      label: "Calling Queue", 
+      label: "Call Alert Due", 
       icon: PhoneCall,
       badge: stats.overdue + stats.dueToday > 0 ? stats.overdue + stats.dueToday : undefined,
       badgeColor: stats.overdue > 0 ? "bg-rose-500" : "bg-amber-500"
     },
     { 
       href: "/ingest", 
-      label: "Data Ingest (4 Ways)", 
+      label: "Stent Entry", 
       icon: Sparkles,
       highlight: true
     },

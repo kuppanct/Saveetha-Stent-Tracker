@@ -241,7 +241,30 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
   const bgMatch = text.match(/\b(A|B|AB|O)[+-]\b/i);
   if (bgMatch) blood_group = bgMatch[0].toUpperCase();
 
-  // 5. Default Unit to Unit 1 (Prof. N. Muthulatha)
+  // 5. Extract Residential / ABHA Address
+  let address = "";
+  for (const line of rawLines) {
+    const addrMatch = line.match(/(?:RESIDENTIAL\s*ADDRESS|ABHA\s*ADDRESS|ADDRESS|RESIDENCE|ADDR)[\s.:-]+([^\r\n]{4,})/i);
+    if (addrMatch) {
+      const cand = addrMatch[1].trim();
+      if (cand && !/^[-—–.]$/.test(cand) && !/^(MALE|FEMALE|DATE|GENDER|CONTACT)$/i.test(cand)) {
+        address = cand;
+        break;
+      }
+    }
+  }
+
+  if (!address) {
+    const addrIdx = rawLines.findIndex((l) => /^(RESIDENTIAL\s*ADDRESS|ABHA\s*ADDRESS|ADDRESS)$/i.test(l));
+    if (addrIdx !== -1 && rawLines[addrIdx + 1]) {
+      const cand = rawLines[addrIdx + 1].trim();
+      if (cand && !/^[-—–.]$/.test(cand) && !/^(MALE|FEMALE|DATE|GENDER|CONTACT|MEDICAL)$/i.test(cand)) {
+        address = cand;
+      }
+    }
+  }
+
+  // 6. Default Unit to Unit 1 (Prof. N. Muthulatha)
   const unit: UnitType = /unit\s*2|sivasankar/i.test(text) ? "Unit 2" : "Unit 1";
   const defaultSurgeon = unit === "Unit 2" ? "Prof. M. Sivasankar" : "Prof. N. Muthulatha";
 
@@ -263,6 +286,7 @@ export function parseOCRText(ocrText: string): ParsedStentEntry {
     uhid,
     name,
     phone,
+    address,
     gender,
     dob,
     blood_group,
