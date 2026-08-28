@@ -579,15 +579,17 @@ export default function QuickAddStentPage() {
             </div>
           ) : (
             /* STANDARD SINGLE STENT MODE */
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Laterality <span className="text-rose-500">*</span>
-                </label>
+                <div className="h-6 flex items-center mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Laterality (Side) <span className="text-rose-500">*</span>
+                  </label>
+                </div>
                 <select
                   value={laterality}
                   onChange={(e) => setLaterality(e.target.value as Laterality)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                  className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:bg-white"
                 >
                   <option value="Right">Right Kidney</option>
                   <option value="Left">Left Kidney</option>
@@ -596,48 +598,55 @@ export default function QuickAddStentPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Stent Material & Lifespan <span className="text-rose-500">*</span>
-                </label>
+                <div className="h-6 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Stent Material <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-medium">Select lifespan</span>
+                </div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(["Regular", "Carbothane", "Silicone"] as StentMaterial[]).map((m) => (
                     <button
                       type="button"
                       key={m}
                       onClick={() => handleMaterialChange(m)}
-                      className={`py-2 px-1 rounded-xl text-xs font-bold border transition text-center ${
+                      className={`h-11 px-1 rounded-xl text-xs font-bold border transition text-center flex flex-col items-center justify-center ${
                         material === m
                           ? "bg-slate-900 text-white border-slate-900 shadow-sm"
                           : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-300"
                       }`}
                     >
-                      <div>{m}</div>
-                      <div className="text-[10px] font-normal opacity-80">{STENT_LIFESPANS[m]}d</div>
+                      <span className="leading-tight">{m}</span>
+                      <span className="text-[9px] font-normal opacity-80 leading-tight">{STENT_LIFESPANS[m]}d</span>
                     </button>
                   ))}
                 </div>
               </div>
 
+              {/* Side-by-Side Aligned Date Pickers */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Insertion Date <span className="text-rose-500">*</span>
-                </label>
+                <div className="h-6 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Insertion Date <span className="text-rose-500">*</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500">Day placed</span>
+                </div>
                 <input
                   type="date"
                   value={insertionDate}
                   onChange={(e) => handleInsertionDateChange(e.target.value)}
                   required
-                  className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                  className="w-full h-11 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                 />
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <div className="h-6 flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                     Planned Due Date
                   </label>
-                  <span className="text-[10px] text-slate-500">
-                    +{STENT_LIFESPANS[material]}d ({material})
+                  <span className="text-[10px] bg-sky-100 text-sky-800 font-bold px-1.5 py-0.5 rounded">
+                    +{STENT_LIFESPANS[material]}d auto
                   </span>
                 </div>
                 <input
@@ -645,7 +654,7 @@ export default function QuickAddStentPage() {
                   value={plannedRemovalDate}
                   onChange={(e) => setPlannedRemovalDate(e.target.value)}
                   required
-                  className="w-full h-11 px-3.5 py-2.5 bg-sky-50/70 border border-sky-300 rounded-xl text-sm font-bold text-sky-900 focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
+                  className="w-full h-11 px-3.5 py-2.5 bg-sky-50/80 border border-sky-300 rounded-xl text-sm font-bold text-sky-900 focus:ring-2 focus:ring-sky-500 focus:bg-white transition"
                 />
               </div>
 

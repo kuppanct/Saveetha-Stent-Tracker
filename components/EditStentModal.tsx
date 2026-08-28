@@ -236,24 +236,28 @@ export default function EditStentModal({
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-bold mb-1">Insertion Date *</label>
+                <div className="h-5 flex items-center mb-1">
+                  <label className="text-xs text-slate-600 dark:text-slate-400 font-bold">Insertion Date *</label>
+                </div>
                 <input
                   type="date"
                   value={insertionDate}
                   onChange={(e) => handleInsertionDateChange(e.target.value)}
                   required
-                  className="w-full h-10 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
+                  className="w-full h-11 px-3 py-2 bg-slate-50 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 rounded-xl font-semibold text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-600 dark:text-slate-400 font-bold mb-1">Planned Removal Due Date *</label>
+                <div className="h-5 flex items-center mb-1">
+                  <label className="text-xs text-slate-600 dark:text-slate-400 font-bold">Planned Due Date *</label>
+                </div>
                 <input
                   type="date"
                   value={plannedRemovalDate}
                   onChange={(e) => setPlannedRemovalDate(e.target.value)}
                   required
-                  className="w-full h-10 px-3 py-2 bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-700 rounded-xl font-bold text-teal-900 dark:text-teal-200"
+                  className="w-full h-11 px-3 py-2 bg-teal-50 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-700 rounded-xl font-bold text-teal-900 dark:text-teal-200"
                 />
               </div>
 

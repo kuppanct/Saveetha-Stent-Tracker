@@ -621,9 +621,11 @@ export default function IngestionHubPage() {
 
                   {/* Symmetrical Aligned Date Pickers */}
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Insertion Date
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Insertion Date
+                      </label>
+                    </div>
                     <input
                       type="date"
                       value={parsedDraft.insertion_date}
@@ -640,19 +642,21 @@ export default function IngestionHubPage() {
                           planned_removal_date: newPlanned,
                         });
                       }}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 rounded-xl font-semibold text-slate-800 dark:text-slate-200"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                      Planned Removal Due Date (Auto)
-                    </label>
+                    <div className="h-5 flex items-center mb-1">
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase">
+                        Planned Removal Date
+                      </label>
+                    </div>
                     <input
                       type="date"
                       value={parsedDraft.planned_removal_date}
                       onChange={(e) => setParsedDraft({ ...parsedDraft, planned_removal_date: e.target.value })}
-                      className="w-full h-10 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
+                      className="w-full h-11 px-3 py-2 bg-indigo-100 dark:bg-indigo-950/80 border border-indigo-300 dark:border-indigo-700 rounded-xl font-bold text-indigo-950 dark:text-indigo-200"
                     />
                   </div>
 

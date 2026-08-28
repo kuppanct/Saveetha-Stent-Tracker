@@ -71,24 +71,28 @@ export default function StatsCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden p-4 sm:p-5 rounded-2xl border shadow-sm transition-all duration-200 min-w-[200px] sm:min-w-0 snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
+      className={`relative overflow-hidden p-4 rounded-2xl border shadow-sm transition-all duration-200 w-[230px] min-w-[230px] max-w-[230px] sm:w-auto sm:min-w-0 sm:max-w-none h-[126px] sm:h-[134px] flex flex-col justify-between snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
         onClick ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]" : ""
       }`}
     >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{title}</p>
-          <p className={`text-3xl font-black mt-1 tracking-tight ${t.valueColor}`}>{value}</p>
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 truncate" title={title}>
+            {title}
+          </p>
+          <p className={`text-2xl sm:text-3xl font-black mt-0.5 tracking-tight ${t.valueColor}`}>
+            {value}
+          </p>
         </div>
-        <div className={`p-3 rounded-2xl ${t.iconBg} shadow-sm`}>
-          <Icon className="w-6 h-6" />
+        <div className={`p-2.5 sm:p-3 rounded-2xl ${t.iconBg} shadow-sm shrink-0`}>
+          <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
         </div>
       </div>
 
-      <div className="mt-3 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
-        <span>{description}</span>
+      <div className="flex items-center justify-between gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 font-medium pt-1 border-t border-slate-100 dark:border-slate-800/60">
+        <span className="truncate">{description}</span>
         {badgeText && (
-          <span className={`font-bold px-2 py-0.5 rounded-lg text-[10px] ${t.badge}`}>
+          <span className={`font-bold px-1.5 py-0.5 rounded-md text-[9px] sm:text-[10px] shrink-0 whitespace-nowrap ${t.badge}`}>
             {badgeText}
           </span>
         )}
