@@ -1,16 +1,17 @@
 {
-  "name": "Saveetha Urology DJ Stent Tracker",
-  "short_name": "Stent Tracker",
-  "description": "Double-J Stent tracking and prevention system for Saveetha Medical College & Hospital",
+  "name": "StentGuard • Saveetha Urology",
+  "short_name": "StentGuard",
+  "description": "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0284c7",
+  "background_color": "#090d16",
+  "theme_color": "#0d9488",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }

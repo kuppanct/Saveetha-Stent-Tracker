@@ -1,17 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Saveetha Urology - DJ Stent Tracker",
-  description: "Comprehensive Double-J Stent Tracking and Overdue Prevention System for Saveetha Medical College and Hospital",
+  title: "StentGuard • Saveetha Urology",
+  description: "Double-J Stent Tracking & Overdue Prevention System • Saveetha Medical College & Hospital (Prof. N. Muthulatha & Prof. M. Sivasankar)",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0284c7",
+  themeColor: "#0d9488",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -20,28 +27,34 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Tailwind CSS CDN to guarantee 100% styled layout under any network/bundler conditions */}
         <script src="https://cdn.tailwindcss.com"></script>
         <script
           dangerouslySetInnerHTML={{
             __html: `
               tailwind.config = {
+                darkMode: 'class',
                 theme: {
                   extend: {
                     colors: {
-                      hospital: {
-                        50: '#f0f9ff',
-                        100: '#e0f2fe',
-                        200: '#bae6fd',
-                        300: '#7dd3fc',
-                        400: '#38bdf8',
-                        500: '#0284c7',
-                        600: '#0369a1',
-                        700: '#075985',
-                        800: '#0c4a6e',
-                        900: '#082f49',
+                      darkbg: {
+                        50: '#1e293b',
+                        100: '#0f172a',
+                        200: '#0b1120',
+                        300: '#060913',
+                      },
+                      brand: {
+                        50: '#f0fdfa',
+                        100: '#ccfbf1',
+                        200: '#99f6e4',
+                        300: '#5eead4',
+                        400: '#2dd4bf',
+                        500: '#14b8a6',
+                        600: '#0d9488',
+                        700: '#0f766e',
+                        800: '#115e59',
+                        900: '#134e4a',
                       }
                     }
                   }
@@ -51,23 +64,25 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-slate-100 flex flex-col antialiased text-slate-900 font-sans">
-        <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {children}
-        </main>
-        
-        {/* Footer */}
-        <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p>
-              🏥 <strong>Saveetha Medical College & Hospital</strong> • Department of Urology
-            </p>
-            <p className="text-slate-400">
-              Double-J Stent Expiry & Overdue Prevention Registry • 100% Free & Open System
-            </p>
-          </div>
-        </footer>
+      <body className="min-h-screen bg-slate-50 dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col antialiased transition-colors duration-200">
+        <ThemeProvider>
+          <Navbar />
+          <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 sm:pb-8">
+            {children}
+          </main>
+          
+          {/* Footer */}
+          <footer className="hidden sm:block bg-white dark:bg-[#111827] border-t border-slate-200 dark:border-[#1f293d] py-4 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+              <p>
+                🏥 <strong>Saveetha Medical College & Hospital</strong> • Department of Urology
+              </p>
+              <p className="text-slate-400 dark:text-slate-500">
+                Unit 1: Prof. N. Muthulatha • Unit 2: Prof. M. Sivasankar • 100% Free Open Stent Registry
+              </p>
+            </div>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   );

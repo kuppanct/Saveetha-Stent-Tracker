@@ -7,16 +7,22 @@ import {
   PhoneCall, 
   UserPlus, 
   MessageSquare, 
-  Hospital,
-  Sparkles,
-  RefreshCw,
-  Bell,
-  BarChart3
+  Sparkles, 
+  RefreshCw, 
+  Bell, 
+  BarChart3,
+  Moon,
+  Sun,
+  ShieldCheck,
+  PlusCircle
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTheme } from "./ThemeProvider";
+import Image from "next/image";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
   const [stats, setStats] = useState<{ overdue: number; dueToday: number }>({ overdue: 0, dueToday: 0 });
   const [waConnected, setWaConnected] = useState<boolean>(false);
 
@@ -48,14 +54,14 @@ export default function Navbar() {
     { href: "/", label: "Dashboard", icon: Activity },
     { 
       href: "/technician-queue", 
-      label: "Technician Queue", 
+      label: "Calling Queue", 
       icon: PhoneCall,
       badge: stats.overdue + stats.dueToday > 0 ? stats.overdue + stats.dueToday : undefined,
       badgeColor: stats.overdue > 0 ? "bg-rose-500" : "bg-amber-500"
     },
     { 
       href: "/ingest", 
-      label: "Entry Hub (4 Channels)", 
+      label: "Data Ingest (4 Ways)", 
       icon: Sparkles,
       highlight: true
     },
@@ -66,66 +72,138 @@ export default function Navbar() {
     },
     { 
       href: "/whatsapp-center", 
-      label: "WhatsApp Center", 
+      label: "WhatsApp", 
       icon: MessageSquare,
       statusDot: waConnected ? "bg-emerald-400" : "bg-amber-400"
     },
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-900 text-white shadow-md border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          
-          {/* Logo & Hospital Title */}
-          <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-teal-400 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
-              <Hospital className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-bold text-lg tracking-tight text-white">SAVEETHA</span>
-                <span className="text-xs bg-sky-600/30 text-sky-300 font-semibold px-2 py-0.5 rounded border border-sky-500/30">UROLOGY</span>
+    <>
+      {/* Top Desktop & Tablet Header */}
+      <header className="sticky top-0 z-40 bg-slate-900/95 dark:bg-[#0c121e]/95 backdrop-blur-md text-white shadow-sm border-b border-slate-800 dark:border-[#1e293b]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            
+            {/* Logo & Brand */}
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 via-sky-500 to-indigo-600 p-0.5 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
+                <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center p-1.5">
+                  <svg viewBox="0 0 512 512" className="w-full h-full" fill="none">
+                    <path d="M256 64 L396 128 V272 C396 360 332 428 256 460 C180 428 116 360 116 272 V128 Z" fill="#0d9488" fillOpacity="0.3" stroke="#2dd4bf" strokeWidth="20" />
+                    <path d="M225 210 C210 160 280 150 295 190 C305 215 290 240 260 256 L252 320 C235 365 295 385 305 340" stroke="#38bdf8" strokeWidth="36" strokeLinecap="round" />
+                    <circle cx="256" cy="400" r="28" fill="#38bdf8" />
+                  </svg>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">DJ Stent Tracking & Prevention System</p>
+
+              <div>
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-black text-lg tracking-tight text-white">StentGuard</span>
+                  <span className="text-[10px] bg-teal-500/20 text-teal-300 font-bold px-1.5 py-0.2 rounded border border-teal-500/30">
+                    SAVEETHA
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 font-medium">Urology DJ Stent Registry</p>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation Links */}
+            <div className="hidden lg:flex items-center space-x-1 sm:space-x-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`relative flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? "bg-teal-600 text-white shadow-sm"
+                        : item.highlight
+                        ? "bg-indigo-600/20 text-indigo-200 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white"
+                        : "text-slate-300 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                    
+                    {item.badge !== undefined && (
+                      <span className={`inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold text-white rounded-full ${item.badgeColor}`}>
+                        {item.badge}
+                      </span>
+                    )}
+
+                    {item.statusDot && (
+                      <span className={`w-2 h-2 rounded-full ${item.statusDot} animate-pulse`} title={waConnected ? "WhatsApp Gateway Connected" : "WhatsApp Setup Needed"} />
+                    )}
+                  </Link>
+                );
+              })}
             </div>
-          </Link>
 
-          {/* Nav Items */}
-          <nav className="flex items-center space-x-1 sm:space-x-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`relative flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-sky-600 text-white shadow-inner"
-                      : item.highlight
-                      ? "bg-indigo-600/30 text-indigo-200 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden md:inline">{item.label}</span>
-                  
-                  {item.badge !== undefined && (
-                    <span className={`inline-flex items-center justify-center px-1.5 py-0.5 text-[11px] font-bold text-white rounded-full ${item.badgeColor}`}>
-                      {item.badge}
-                    </span>
-                  )}
+            {/* Right Controls: Quick Add Button & Dark Mode Toggle */}
+            <div className="flex items-center space-x-2">
+              
+              <Link
+                href="/register"
+                className="hidden sm:inline-flex items-center space-x-1.5 px-3.5 py-2 bg-gradient-to-r from-teal-500 to-sky-600 hover:from-teal-600 hover:to-sky-700 text-white text-xs font-bold rounded-xl shadow-sm transition"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>+ Add Stent</span>
+              </Link>
 
-                  {item.statusDot && (
-                    <span className={`w-2 h-2 rounded-full ${item.statusDot} animate-pulse`} title={waConnected ? "WhatsApp Ready" : "WhatsApp Setup Needed"} />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+              {/* Dark / Light Mode Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label="Toggle Theme"
+                className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700/60 transition shadow-sm flex items-center justify-center"
+                title={theme === "dark" ? "Switch to Eye-Pleasing Light Mode" : "Switch to Calming Dark Mode"}
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-4 h-4 text-amber-300 animate-spin-slow" />
+                ) : (
+                  <Moon className="w-4 h-4 text-sky-200" />
+                )}
+              </button>
+            </div>
+
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* Mobile Bottom Navigation Bar (App Bar for Smart Phones) */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 dark:bg-[#0c121e]/95 backdrop-blur-lg border-t border-slate-800 dark:border-[#1e293b] px-2 py-1.5 safe-area-pb">
+        <div className="grid grid-cols-5 gap-1 text-center">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all relative ${
+                  isActive
+                    ? "text-teal-400 bg-slate-800/80"
+                    : "text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <div className="relative">
+                  <Icon className="w-4 h-4 mb-0.5" />
+                  {item.badge !== undefined && (
+                    <span className="absolute -top-1 -right-2 w-2.5 h-2.5 rounded-full bg-rose-500" />
+                  )}
+                  {item.statusDot && (
+                    <span className={`absolute -top-0.5 -right-1.5 w-2 h-2 rounded-full ${item.statusDot}`} />
+                  )}
+                </div>
+                <span className="truncate max-w-[56px]">{item.label.split(" ")[0]}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }
