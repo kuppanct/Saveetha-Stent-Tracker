@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logNotification } from "@/lib/db-service";
 
-const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || "http://localhost:3001";
+const WHATSAPP_CLOUD_URL = process.env.WHATSAPP_API_URL || "https://saveetha-whatsapp-gateway.onrender.com";
+const WHATSAPP_LOCAL_URL = "http://localhost:3001";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,20 +19,28 @@ export async function POST(request: NextRequest) {
     let isSent = false;
     let errorMessage: string | undefined = undefined;
 
-    try {
-      const res = await fetch(`${WHATSAPP_API_URL}/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, message }),
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        isSent = true;
-      } else {
-        errorMessage = data.error || "Gateway returned error";
+    // Try Render 24/7 cloud gateway first, then fallback to local
+    const urlsToTry = [WHATSAPP_CLOUD_URL, WHATSAPP_LOCAL_URL];
+
+    for (const url of urlsToTry) {
+      try {
+        const res = await fetch(`${url}/send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, message }),
+          signal: AbortSignal.timeout(8000),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          isSent = true;
+          errorMessage = undefined;
+          break;
+        } else {
+          errorMessage = data.error || "Gateway returned error";
+        }
+      } catch (err: any) {
+        errorMessage = `Could not reach gateway at ${url}`;
       }
-    } catch (err: any) {
-      errorMessage = "WhatsApp local daemon is not running. Please start it with 'npm run whatsapp-service'.";
     }
 
     // Log notification attempt
@@ -48,18 +57,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (isSent) {
-      return NextResponse.json({ success: true, message: "WhatsApp message dispatched successfully" });
-    } else {
       return NextResponse.json({
-        success: false,
-        warning: true,
-        error: errorMessage,
-        message: "Message logged. To send live WhatsApp chats, run 'npm run whatsapp-service'",
+        success: true,
+        recipient: phone,
+        status: "SENT",
       });
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          error: errorMessage || "Failed to send WhatsApp message via cloud and local gateways",
+        },
+        { status: 502 }
+      );
     }
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to process WhatsApp request" },
+      { error: error.message || "Internal server error" },
       { status: 500 }
     );
   }

@@ -37,3 +37,5 @@ next-env.d.ts
 # whatsapp-web.js session cache
 /.wwebjs_auth/
 /.wwebjs_cache/
+
+.vercel
