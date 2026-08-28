@@ -2,6 +2,7 @@
  * SAVEETHA MEDICAL COLLEGE & HOSPITAL - UROLOGY DEPARTMENT
  * ZERO-COST WHATSAPP GATEWAY DAEMON & RESIDENT INGESTION BOT
  * Uses whatsapp-web.js with LocalAuth session caching.
+ * Optimized for low-memory container environments (Render free tier < 512MB RAM).
  */
 
 const { Client, LocalAuth } = require("whatsapp-web.js");
@@ -12,7 +13,7 @@ const cors = require("cors");
 require("dotenv").config({ path: ".env.local" });
 
 const app = express();
-const PORT = process.env.WHATSAPP_SERVICE_PORT || 3001;
+const PORT = process.env.PORT || process.env.WHATSAPP_SERVICE_PORT || 3001;
 
 app.use(cors());
 app.use(express.json());
@@ -35,6 +36,7 @@ const client = new Client({
   }),
   puppeteer: {
     headless: true,
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -43,6 +45,15 @@ const client = new Client({
       "--no-first-run",
       "--no-zygote",
       "--disable-gpu",
+      "--single-process",
+      "--disable-extensions",
+      "--disable-component-update",
+      "--disable-default-apps",
+      "--mute-audio",
+      "--hide-scrollbars",
+      "--disable-background-timer-throttling",
+      "--disable-renderer-backgrounding",
+      "--js-flags=--max-old-space-size=256",
     ],
   },
 });
@@ -112,8 +123,11 @@ client.on("message", async (msg) => {
     console.log(`\n📥 [BOT MESSAGE RECEIVED] From: ${msg.from} | Payload: "${body}"`);
 
     try {
-      // Forward to web app ingestion API
-      const res = await fetch("http://localhost:3000/api/ingest/bot", {
+      const apiUrl = process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}/api/ingest/bot` 
+        : "https://saveetha-stent-tracker.vercel.app/api/ingest/bot";
+
+      const res = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: body, sender: msg.from }),
@@ -206,8 +220,8 @@ app.post("/send", async (req, res) => {
 
 // Start HTTP Express Server
 app.listen(PORT, () => {
-  console.log(`🌐 [GATEWAY API] WhatsApp HTTP Server running on http://localhost:${PORT}`);
-  console.log("🔄 Initializing WhatsApp Web Client instance...\n");
+  console.log(`🌐 [GATEWAY API] WhatsApp HTTP Server running on port ${PORT}`);
+  console.log("🔄 Initializing WhatsApp Web Client instance with low-memory configuration...\n");
   client.initialize().catch((err) => {
     console.error("Failed to initialize WhatsApp client:", err);
   });
