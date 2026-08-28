@@ -87,15 +87,11 @@ export default function Navbar() {
             
             {/* Logo & Brand */}
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-teal-500 via-sky-500 to-indigo-600 p-0.5 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
-                <div className="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center p-1.5">
-                  <svg viewBox="0 0 512 512" className="w-full h-full" fill="none">
-                    <path d="M256 64 L396 128 V272 C396 360 332 428 256 460 C180 428 116 360 116 272 V128 Z" fill="#0d9488" fillOpacity="0.3" stroke="#2dd4bf" strokeWidth="20" />
-                    <path d="M225 210 C210 160 280 150 295 190 C305 215 290 240 260 256 L252 320 C235 365 295 385 305 340" stroke="#38bdf8" strokeWidth="36" strokeLinecap="round" />
-                    <circle cx="256" cy="400" r="28" fill="#38bdf8" />
-                  </svg>
-                </div>
-              </div>
+              <img
+                src="/icon.png"
+                alt="StentGuard Saveetha"
+                className="w-11 h-11 rounded-2xl object-cover shadow-md group-hover:scale-105 transition-transform border border-slate-700/50 bg-slate-900"
+              />
 
               <div>
                 <div className="flex items-center space-x-1.5">

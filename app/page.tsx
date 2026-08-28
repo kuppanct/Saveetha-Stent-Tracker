@@ -150,7 +150,7 @@ export default function Dashboard() {
           value={stats.totalActive}
           description="In situ (Left & Right)"
           icon={Activity}
-          colorClass="border-sky-200 hover:border-sky-300"
+          themeType="sky"
           onClick={() => {
             setStatusFilter("Active");
             setUrgencyFilter("ALL");
@@ -162,7 +162,7 @@ export default function Dashboard() {
           value={stats.dueToday}
           description="Requires removal"
           icon={Clock}
-          colorClass={stats.dueToday > 0 ? "border-amber-400 bg-amber-50/20" : "border-slate-200"}
+          themeType="amber"
           badgeText="Day of Removal"
           onClick={() => {
             setStatusFilter("Active");
@@ -175,7 +175,7 @@ export default function Dashboard() {
           value={stats.overdue}
           description="Past planned date"
           icon={AlertTriangle}
-          colorClass={stats.overdue > 0 ? "border-orange-400 bg-orange-50/20" : "border-slate-200"}
+          themeType="rose"
           badgeText="High Urgency"
           onClick={() => {
             setStatusFilter("Active");
@@ -188,7 +188,7 @@ export default function Dashboard() {
           value={stats.severelyOverdue}
           description="> 180 days overdue"
           icon={AlertOctagon}
-          colorClass={stats.severelyOverdue > 0 ? "border-rose-400 bg-rose-50/30 animate-pulse" : "border-slate-200"}
+          themeType="red"
           badgeText="Critical Alert"
           onClick={() => {
             setStatusFilter("Active");
@@ -201,7 +201,7 @@ export default function Dashboard() {
           value={stats.removedThisMonth}
           description="This month"
           icon={CheckCircle2}
-          colorClass="border-emerald-200"
+          themeType="emerald"
           badgeText="Completed"
           onClick={() => {
             setStatusFilter("Removed");
