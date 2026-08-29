@@ -190,6 +190,9 @@ const mockNotificationLogs: NotificationLog[] = [
 function enrichStent(stent: Stent, patient?: Patient, allStents?: Stent[]): Stent {
   const urgency = getUrgencyInfo(stent.planned_removal_date, stent.status);
   
+  // Normalize removal date across schema naming variations
+  const resolvedRemovalDate = stent.actual_removal_date || stent.removal_date || null;
+
   // Check if patient has an active stent on the other side
   let hasOtherSide = false;
   if (allStents && stent.status === "Active") {
@@ -207,6 +210,8 @@ function enrichStent(stent: Stent, patient?: Patient, allStents?: Stent[]): Sten
   return {
     ...stent,
     patient,
+    removal_date: resolvedRemovalDate,
+    actual_removal_date: resolvedRemovalDate,
     days_remaining: urgency.daysRemaining,
     urgency_level: urgency.level,
     urgency_badge: urgency.badge,
@@ -917,7 +922,7 @@ export async function getNotificationLogs(limit: number = 50): Promise<Notificat
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  const stents = await getStents();
+  const stents = await getStents({ status: "ALL" });
   const patients = await getPatients();
 
   let totalActive = 0;
@@ -941,9 +946,18 @@ export async function getDashboardStats(): Promise<DashboardStats> {
           severelyOverdue++;
         }
       }
-    } else if (s.status === "Removed" && s.removal_date) {
-      const rDate = new Date(s.removal_date);
-      if (rDate.getMonth() === currentMonth && rDate.getFullYear() === currentYear) {
+    } else if (s.status === "Removed" || s.status === "Exchanged") {
+      const rDateStr = s.actual_removal_date || s.removal_date || s.updated_at || s.created_at;
+      if (rDateStr) {
+        const rDate = new Date(rDateStr);
+        if (!isNaN(rDate.getTime())) {
+          if (rDate.getMonth() === currentMonth && rDate.getFullYear() === currentYear) {
+            removedThisMonth++;
+          }
+        } else {
+          removedThisMonth++;
+        }
+      } else {
         removedThisMonth++;
       }
     }

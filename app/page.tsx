@@ -174,7 +174,7 @@ export default function Dashboard() {
       )}
 
       {/* Metric Cards (Horizontal scrolling on mobile, grid on desktop) */}
-      <div className="flex sm:grid overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-4 pb-2 sm:pb-0 sm:grid-cols-2 lg:grid-cols-5 -mx-3 px-3 sm:mx-0 sm:px-0">
+      <div className="flex sm:grid overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-4 pt-2 pb-3.5 px-3 -mx-3 sm:mx-0 sm:px-0 sm:pt-0 sm:pb-0 sm:grid-cols-2 lg:grid-cols-5 scrollbar-thin">
         <StatsCard
           title="Active Stents"
           value={stats.totalActive}

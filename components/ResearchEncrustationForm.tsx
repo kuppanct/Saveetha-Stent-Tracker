@@ -216,6 +216,75 @@ export default function ResearchEncrustationForm({
     }
   }, [weightKg, heightCm, bmiMode]);
 
+  // Synchronize when existing initialData loads from API
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.weight_kg !== undefined && initialData.weight_kg !== null) {
+        setWeightKg(String(initialData.weight_kg));
+      }
+      if (initialData.height_cm !== undefined && initialData.height_cm !== null) {
+        setHeightCm(String(initialData.height_cm));
+      }
+      if (initialData.bmi !== undefined && initialData.bmi !== null) {
+        setBmi(String(initialData.bmi));
+      }
+      if (initialData.is_diabetic !== undefined) {
+        setIsDiabetic(Boolean(initialData.is_diabetic));
+      }
+      if (initialData.has_ckd !== undefined) {
+        setHasCkd(Boolean(initialData.has_ckd));
+      }
+      if (initialData.pregnancy_status !== undefined) {
+        setPregnancyStatus(Boolean(initialData.pregnancy_status));
+      }
+      if (initialData.recurrent_stone_former !== undefined) {
+        setRecurrentStoneFormer(Boolean(initialData.recurrent_stone_former));
+      }
+      if (initialData.anatomical_abnormality) {
+        setAnatomicalAbnormality(initialData.anatomical_abnormality);
+      }
+      if (initialData.urine_culture) {
+        setUrineCulture(initialData.urine_culture);
+      }
+      if (initialData.urine_ph !== undefined && initialData.urine_ph !== null) {
+        setUrinePh(String(initialData.urine_ph));
+      }
+      if (initialData.procedure_type) {
+        setProcedureType(initialData.procedure_type);
+      }
+      if (initialData.stone_clearance_status) {
+        setStoneClearance(initialData.stone_clearance_status);
+      }
+      if (initialData.stent_size_fr) {
+        setStentSizeFr(initialData.stent_size_fr);
+      }
+      if (initialData.stent_length_cm) {
+        setStentLengthCm(initialData.stent_length_cm);
+      }
+      if (initialData.encrustation_grade !== undefined) {
+        setEncrustationGrade(initialData.encrustation_grade);
+      }
+      if (initialData.encrustation_location) {
+        setEncrustationLocations(initialData.encrustation_location);
+      }
+      if (initialData.removal_difficulty) {
+        setRemovalDifficulty(initialData.removal_difficulty);
+      }
+      if (initialData.ancillary_procedure_required !== undefined) {
+        setAncillaryProcedure(Boolean(initialData.ancillary_procedure_required));
+      }
+      if (initialData.alkalinizer_used !== undefined) {
+        setAlkalinizerUsed(Boolean(initialData.alkalinizer_used));
+      }
+      if (initialData.symptomatic_indwelling !== undefined) {
+        setSymptomaticIndwelling(Boolean(initialData.symptomatic_indwelling));
+      }
+      if (initialData.stent_image_url) {
+        setStentImageUrl(initialData.stent_image_url);
+      }
+    }
+  }, [initialData]);
+
   // Synchronize state changes to parent form
   useEffect(() => {
     onDataChange({

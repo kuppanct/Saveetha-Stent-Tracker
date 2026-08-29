@@ -21,21 +21,21 @@ const THEME_STYLES = {
     badge: "bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800",
   },
   amber: {
-    border: "border-amber-300 dark:border-amber-900/80 hover:border-amber-400 dark:hover:border-amber-600",
-    bg: "bg-amber-50/30 dark:bg-amber-950/20",
+    border: "border-amber-400 dark:border-amber-700 hover:border-amber-500",
+    bg: "bg-amber-50/40 dark:bg-amber-950/30",
     iconBg: "bg-amber-100 dark:bg-amber-900/70 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700",
-    valueColor: "text-amber-900 dark:text-amber-200",
+    valueColor: "text-amber-950 dark:text-amber-200",
     badge: "bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700",
   },
   rose: {
-    border: "border-orange-300 dark:border-orange-900/80 hover:border-orange-400 dark:hover:border-orange-600",
-    bg: "bg-orange-50/30 dark:bg-orange-950/20",
+    border: "border-orange-400 dark:border-orange-700 hover:border-orange-500",
+    bg: "bg-orange-50/40 dark:bg-orange-950/30",
     iconBg: "bg-orange-100 dark:bg-orange-900/70 text-orange-700 dark:text-orange-300 border border-orange-300 dark:border-orange-700",
-    valueColor: "text-orange-900 dark:text-orange-200",
+    valueColor: "text-orange-950 dark:text-orange-200",
     badge: "bg-orange-100 dark:bg-orange-900/60 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-700",
   },
   red: {
-    border: "border-rose-400 dark:border-rose-900 hover:border-rose-500 dark:hover:border-rose-600",
+    border: "border-rose-400 dark:border-rose-800 hover:border-rose-500",
     bg: "bg-rose-50/40 dark:bg-rose-950/30",
     iconBg: "bg-rose-100 dark:bg-rose-900/80 text-rose-700 dark:text-rose-200 border border-rose-300 dark:border-rose-700",
     valueColor: "text-rose-950 dark:text-rose-200",
@@ -71,8 +71,8 @@ export default function StatsCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden p-4 rounded-2xl border shadow-sm transition-all duration-200 w-[220px] min-w-[220px] max-w-[220px] sm:w-full sm:min-w-0 sm:max-w-none h-[132px] min-h-[132px] max-h-[132px] flex flex-col justify-between snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
-        onClick ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]" : ""
+      className={`relative overflow-hidden p-4 rounded-2xl border shadow-sm transition-all duration-200 w-[220px] min-w-[220px] max-w-[220px] sm:w-full sm:min-w-0 sm:max-w-none h-[132px] min-h-[132px] max-h-[132px] flex flex-col justify-between snap-start flex-shrink-0 sm:flex-shrink box-border ${t.bg} ${t.border} ${
+        onClick ? "cursor-pointer hover:shadow-md active:scale-[0.98]" : ""
       }`}
     >
       <div className="flex items-center justify-between gap-2">
