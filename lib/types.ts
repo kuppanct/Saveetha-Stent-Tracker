@@ -37,11 +37,13 @@ export interface Stent {
   insertion_date: string; // YYYY-MM-DD
   planned_removal_date: string; // YYYY-MM-DD
   removal_date?: string | null;
+  actual_removal_date?: string | null;
   status: StentStatus;
   residual_stone: boolean;
   inserted_by: string;
   exchanged_from_id?: string | null;
   notes?: string | null;
+  removal_notes?: string | null;
   created_at: string;
   updated_at?: string;
   // Joined fields
