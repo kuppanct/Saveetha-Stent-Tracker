@@ -394,7 +394,7 @@ export default function Dashboard() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSuccess={() => fetchData()}
-          onDelete={handleDeleteStent}
+          onDelete={() => fetchData()}
         />
       )}
     </div>
