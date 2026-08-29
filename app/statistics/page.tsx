@@ -15,7 +15,8 @@ import {
   RefreshCw,
   Users,
   Activity,
-  Award
+  Award,
+  Sparkles
 } from "lucide-react";
 
 export default function StatisticsPage() {
@@ -107,7 +108,7 @@ export default function StatisticsPage() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={fetchStatsData}
             className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
@@ -115,6 +116,15 @@ export default function StatisticsPage() {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+
+          <a
+            href="/api/research/export-csv"
+            download
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition shadow-sm"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Export Encrustation Study (CSV)</span>
+          </a>
 
           <button
             onClick={downloadAuditReport}

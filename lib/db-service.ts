@@ -12,6 +12,7 @@ import {
   UnitType,
   Laterality,
   StentMaterial,
+  ResearchEncrustation,
 } from "./types";
 import {
   calculatePlannedRemovalDate,
@@ -1029,4 +1030,137 @@ export async function updateStentAndPatient(
   };
   mockStents[sIdx] = updated;
   return enrichStent(updated, pat, mockStents);
+}
+
+// =========================================================================
+// CLINICAL RESEARCH MODULE: STENT ENCRUSTATION STUDY
+// =========================================================================
+
+const mockResearchEncrustations: ResearchEncrustation[] = [];
+
+/**
+ * Fetch Research Encrustation record by stent_id
+ */
+export async function getResearchEncrustation(
+  stentId: string
+): Promise<ResearchEncrustation | null> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from("research_encrustation")
+      .select("*")
+      .eq("stent_id", stentId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn("Supabase research encrustation fetch warning:", error.message);
+      return null;
+    }
+    return data as ResearchEncrustation | null;
+  }
+
+  const found = mockResearchEncrustations.find((r) => r.stent_id === stentId);
+  return found || null;
+}
+
+/**
+ * UPSERT (Insert or Update) Research Encrustation Data
+ */
+export async function upsertResearchEncrustation(
+  input: Partial<ResearchEncrustation> & { stent_id: string; patient_id: string }
+): Promise<ResearchEncrustation> {
+  const nowIso = new Date().toISOString();
+
+  const record: ResearchEncrustation = {
+    stent_id: input.stent_id,
+    patient_id: input.patient_id,
+    weight_kg: input.weight_kg !== undefined ? input.weight_kg : null,
+    height_cm: input.height_cm !== undefined ? input.height_cm : null,
+    bmi: input.bmi !== undefined ? input.bmi : null,
+    is_diabetic: Boolean(input.is_diabetic),
+    has_ckd: Boolean(input.has_ckd),
+    pregnancy_status: Boolean(input.pregnancy_status),
+    recurrent_stone_former: Boolean(input.recurrent_stone_former),
+    urine_culture: input.urine_culture || "Sterile",
+    urine_ph: input.urine_ph !== undefined ? input.urine_ph : null,
+    procedure_type: input.procedure_type || "URSL",
+    stone_clearance_status: input.stone_clearance_status || "Complete",
+    stent_size_fr: input.stent_size_fr ?? 6.0,
+    stent_length_cm: input.stent_length_cm ?? 26,
+    encrustation_grade: input.encrustation_grade ?? 0,
+    encrustation_location: input.encrustation_location || [],
+    removal_difficulty: input.removal_difficulty || "Simple",
+    ancillary_procedure_required: Boolean(input.ancillary_procedure_required),
+    alkalinizer_used: Boolean(input.alkalinizer_used),
+    symptomatic_indwelling: Boolean(input.symptomatic_indwelling),
+    stent_image_url: input.stent_image_url || null,
+    updated_at: nowIso,
+  };
+
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from("research_encrustation")
+      .upsert(record, { onConflict: "stent_id" })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("Supabase UPSERT fallback:", error.message);
+      // If table is not yet migrated, save locally
+    } else if (data) {
+      return data as ResearchEncrustation;
+    }
+  }
+
+  // Local fallback
+  const idx = mockResearchEncrustations.findIndex((r) => r.stent_id === input.stent_id);
+  if (idx !== -1) {
+    mockResearchEncrustations[idx] = {
+      ...mockResearchEncrustations[idx],
+      ...record,
+      id: mockResearchEncrustations[idx].id || `re-${Date.now()}`,
+    };
+    return mockResearchEncrustations[idx];
+  } else {
+    const newRec: ResearchEncrustation = {
+      ...record,
+      id: `re-${Date.now()}`,
+      created_at: nowIso,
+    };
+    mockResearchEncrustations.push(newRec);
+    return newRec;
+  }
+}
+
+/**
+ * Fetch all research encrustation records joined with Stent and Patient data
+ * Used for CSV research data export and statistical correlation analysis
+ */
+export async function getAllResearchEncrustationsWithDetails(): Promise<any[]> {
+  if (isSupabaseConfigured && supabase) {
+    const { data, error } = await supabase
+      .from("research_encrustation")
+      .select(`
+        *,
+        stent:stents(
+          id, unit, laterality, material, insertion_date, planned_removal_date, 
+          actual_removal_date, status, residual_stone, inserted_by, notes,
+          patient:patients(id, uhid, name, phone, second_language)
+        )
+      `)
+      .order("created_at", { ascending: false });
+
+    if (!error && data && data.length > 0) {
+      return data;
+    }
+  }
+
+  // Local fallback join
+  return mockResearchEncrustations.map((r) => {
+    const stent = mockStents.find((s) => s.id === r.stent_id);
+    const patient = stent ? mockPatients.find((p) => p.id === stent.patient_id) : undefined;
+    return {
+      ...r,
+      stent: stent ? { ...stent, patient } : null,
+    };
+  });
 }

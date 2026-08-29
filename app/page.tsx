@@ -9,6 +9,7 @@ import RemovalModal from "@/components/RemovalModal";
 import ExchangeModal from "@/components/ExchangeModal";
 import MessagePreviewModal from "@/components/MessagePreviewModal";
 import EditStentModal from "@/components/EditStentModal";
+import ResearchEncrustationModal from "@/components/ResearchEncrustationModal";
 import { 
   Activity, 
   AlertOctagon, 
@@ -19,7 +20,8 @@ import {
   Filter, 
   RefreshCw,
   PlusCircle,
-  Play
+  Play,
+  Sparkles
 } from "lucide-react";
 import Link from "next/link";
 
@@ -47,6 +49,7 @@ export default function Dashboard() {
   const [isExchangeModalOpen, setIsExchangeModalOpen] = useState(false);
   const [isMsgModalOpen, setIsMsgModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [cronTriggering, setCronTriggering] = useState(false);
   const [cronNotification, setCronNotification] = useState<string | null>(null);
 
@@ -143,11 +146,21 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex items-center space-x-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <a
+            href="/api/research/export-csv"
+            download
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 transition shadow-sm"
+            title="Download complete Stent Encrustation & Biocompatibility Research Study Dataset (CSV)"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Encrustation Study CSV</span>
+          </a>
+
           <button
             onClick={handleRunCron}
             disabled={cronTriggering}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl border border-slate-300 transition shadow-sm disabled:opacity-50"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl border border-slate-300 dark:border-slate-700 transition shadow-sm disabled:opacity-50"
             title="Execute daily stent expiry evaluation and trigger queued WhatsApp notifications"
           >
             <Play className={`w-3.5 h-3.5 ${cronTriggering ? "animate-spin" : ""}`} />
@@ -365,6 +378,10 @@ export default function Dashboard() {
           setIsEditModalOpen(true);
         }}
         onDelete={handleDeleteStent}
+        onOpenResearch={(stent) => {
+          setSelectedStent(stent);
+          setIsResearchModalOpen(true);
+        }}
       />
 
       {/* Modals with Clean DOM Unmounting */}
@@ -443,6 +460,20 @@ export default function Dashboard() {
           onDelete={() => {
             setIsEditModalOpen(false);
             setSelectedStent(null);
+            fetchData();
+          }}
+        />
+      )}
+
+      {selectedStent && isResearchModalOpen && (
+        <ResearchEncrustationModal
+          stent={selectedStent}
+          isOpen={isResearchModalOpen}
+          onClose={() => {
+            setIsResearchModalOpen(false);
+            setSelectedStent(null);
+          }}
+          onSuccess={() => {
             fetchData();
           }}
         />

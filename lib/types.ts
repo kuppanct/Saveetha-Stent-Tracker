@@ -56,6 +56,48 @@ export interface Stent {
   };
   has_other_side_active?: boolean;
   other_side_stent?: Stent;
+  research_encrustation?: ResearchEncrustation | null;
+}
+
+export type UrineCulture = "Sterile" | "E.coli" | "Proteus" | "Klebsiella" | "Pseudomonas" | "Other";
+export type ProcedureType = "URSL" | "RIRS" | "PCNL" | "ESWL" | "Endopyelotomy" | "Stricture Dilatation" | "Malignancy" | "Other";
+export type StoneClearanceStatus = "Complete" | "Residual Fragments" | "Not Applicable";
+export type EncrustationGrade = 0 | 1 | 2 | 3;
+export type EncrustationLocation = "Renal" | "Ureter" | "Bladder";
+export type RemovalDifficulty = "Simple" | "Moderate" | "Complex";
+
+export interface ResearchEncrustation {
+  id?: string;
+  stent_id: string;
+  patient_id: string;
+  // Patient Factors
+  weight_kg?: number | null;
+  height_cm?: number | null;
+  bmi?: number | null;
+  is_diabetic: boolean;
+  has_ckd: boolean;
+  pregnancy_status: boolean;
+  recurrent_stone_former: boolean;
+  // Pre-op Urine
+  urine_culture: UrineCulture;
+  urine_ph?: number | null;
+  // Surgery Details
+  procedure_type: ProcedureType;
+  stone_clearance_status: StoneClearanceStatus;
+  stent_size_fr: number;
+  stent_length_cm: number;
+  // Encrustation Data
+  encrustation_grade: EncrustationGrade;
+  encrustation_location: EncrustationLocation[];
+  removal_difficulty: RemovalDifficulty;
+  ancillary_procedure_required: boolean;
+  // Additional Variables
+  alkalinizer_used: boolean;
+  symptomatic_indwelling: boolean;
+  // Media
+  stent_image_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export type CallOutcome =

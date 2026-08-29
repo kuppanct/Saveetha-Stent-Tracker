@@ -13,7 +13,8 @@ import {
   Layers,
   ChevronRight,
   Edit3,
-  Trash2
+  Trash2,
+  Sparkles
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -26,6 +27,7 @@ interface StentTableProps {
   onPreviewMessage: (stent: Stent) => void;
   onEdit?: (stent: Stent) => void;
   onDelete?: (stent: Stent) => void;
+  onOpenResearch?: (stent: Stent) => void;
 }
 
 export default function StentTable({
@@ -37,6 +39,7 @@ export default function StentTable({
   onPreviewMessage,
   onEdit,
   onDelete,
+  onOpenResearch,
 }: StentTableProps) {
   if (loading) {
     return (
@@ -152,55 +155,72 @@ export default function StentTable({
                 </span>
               </div>
 
-              {/* Action Buttons: Exact 5-Column Single Row Layout */}
-              <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                <button
-                  onClick={() => onLogCall(stent)}
-                  className="py-2 px-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 hover:bg-sky-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
-                  title="Log Call"
-                >
-                  <Phone className="w-3.5 h-3.5 mb-0.5" />
-                  <span>Call</span>
-                </button>
-
-                <button
-                  onClick={() => onPreviewMessage(stent)}
-                  className="py-2 px-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
-                  title="WhatsApp Alert"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
-                  <span>WA</span>
-                </button>
-
-                {onEdit && (
+              {/* Action Buttons */}
+              {stent.status === "Active" ? (
+                <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
                   <button
-                    onClick={() => onEdit(stent)}
-                    className="py-2 px-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
-                    title="Edit Record"
+                    onClick={() => onLogCall(stent)}
+                    className="py-2 px-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 hover:bg-sky-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
+                    title="Log Call"
                   >
-                    <Edit3 className="w-3.5 h-3.5 mb-0.5" />
-                    <span>Edit</span>
+                    <Phone className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Call</span>
                   </button>
-                )}
 
-                <button
-                  onClick={() => onExchange(stent)}
-                  className="py-2 px-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
-                  title="Exchange Stent"
-                >
-                  <RefreshCw className="w-3.5 h-3.5 mb-0.5" />
-                  <span>Exch</span>
-                </button>
+                  <button
+                    onClick={() => onPreviewMessage(stent)}
+                    className="py-2 px-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
+                    title="WhatsApp Alert"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
+                    <span>WA</span>
+                  </button>
 
-                <button
-                  onClick={() => onRemove(stent)}
-                  className="py-2 px-1 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 hover:bg-emerald-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
-                  title="Mark Removed"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 mb-0.5" />
-                  <span>Done</span>
-                </button>
-              </div>
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(stent)}
+                      className="py-2 px-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
+                      title="Edit Record"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 mb-0.5" />
+                      <span>Edit</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => onExchange(stent)}
+                    className="py-2 px-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
+                    title="Exchange Stent"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Exch</span>
+                  </button>
+
+                  <button
+                    onClick={() => onRemove(stent)}
+                    className="py-2 px-1 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 hover:bg-emerald-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
+                    title="Mark Removed"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Done</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="text-xs font-semibold text-slate-400">
+                    Archived ({stent.status})
+                  </span>
+                  {onOpenResearch && (
+                    <button
+                      onClick={() => onOpenResearch(stent)}
+                      className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 text-xs font-bold flex items-center space-x-1.5 transition"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>📝 Encrustation Study</span>
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           );
         })}
@@ -383,10 +403,20 @@ export default function StentTable({
                             )}
                           </>
                         ) : (
-                          <div className="flex items-center space-x-2">
+                          <div className="flex items-center justify-end space-x-2">
                             <span className="text-xs font-semibold text-slate-400 italic">
                               Archived ({stent.status})
                             </span>
+                            {onOpenResearch && (
+                              <button
+                                onClick={() => onOpenResearch(stent)}
+                                title="Add/Edit Encrustation Research Data"
+                                className="px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 text-xs font-bold flex items-center space-x-1.5 transition shadow-sm"
+                              >
+                                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                                <span>📝 Research Data</span>
+                              </button>
+                            )}
                             {onDelete && (
                               <button
                                 onClick={() => onDelete(stent)}
