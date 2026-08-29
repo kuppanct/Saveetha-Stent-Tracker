@@ -10,6 +10,7 @@ import {
   EncrustationGrade,
   EncrustationLocation,
   RemovalDifficulty,
+  AnatomicalAbnormality,
 } from "@/lib/types";
 import { compressStentImage } from "@/lib/image-compression";
 import {
@@ -70,6 +71,17 @@ const REMOVAL_DIFFICULTIES: RemovalDifficulty[] = [
   "Complex",
 ];
 
+const ANATOMICAL_ABNORMALITIES: { value: AnatomicalAbnormality; label: string }[] = [
+  { value: "None", label: "🟢 None (Normal Anatomy)" },
+  { value: "PUJO", label: "PUJO (Pelviureteric Junction)" },
+  { value: "Horseshoe Kidney", label: "Horseshoe Kidney" },
+  { value: "Duplicated System", label: "Duplicated / Duplex System" },
+  { value: "Ectopic Kidney", label: "Ectopic / Pelvic Kidney" },
+  { value: "Malrotated Kidney", label: "Malrotated Kidney" },
+  { value: "Ureterocele", label: "Ureterocele" },
+  { value: "Other", label: "Other Abnormality" },
+];
+
 export default function ResearchEncrustationForm({
   stent,
   initialData,
@@ -100,7 +112,7 @@ export default function ResearchEncrustationForm({
     initialData?.bmi ? String(initialData.bmi) : ""
   );
 
-  // Patient Comorbidities
+  // Patient Comorbidities & Anatomical Abnormalities
   const [isDiabetic, setIsDiabetic] = useState<boolean>(
     Boolean(initialData?.is_diabetic)
   );
@@ -112,6 +124,9 @@ export default function ResearchEncrustationForm({
     initialData?.recurrent_stone_former !== undefined
       ? Boolean(initialData.recurrent_stone_former)
       : Boolean(stent.residual_stone)
+  );
+  const [anatomicalAbnormality, setAnatomicalAbnormality] = useState<AnatomicalAbnormality>(
+    initialData?.anatomical_abnormality || "None"
   );
 
   // Pre-op Urine
@@ -197,6 +212,7 @@ export default function ResearchEncrustationForm({
       has_ckd: hasCkd,
       pregnancy_status: pregnancyStatus,
       recurrent_stone_former: recurrentStoneFormer,
+      anatomical_abnormality: anatomicalAbnormality,
       urine_culture: urineCulture,
       urine_ph: urinePh ? parseFloat(urinePh) : null,
       procedure_type: procedureType,
@@ -219,6 +235,7 @@ export default function ResearchEncrustationForm({
     hasCkd,
     pregnancyStatus,
     recurrentStoneFormer,
+    anatomicalAbnormality,
     urineCulture,
     urinePh,
     procedureType,
@@ -441,6 +458,26 @@ export default function ResearchEncrustationForm({
               Recurrent Stone Former
             </span>
           </label>
+        </div>
+
+        {/* Anatomical Abnormality Select */}
+        <div className="pt-1 border-t border-slate-100 dark:border-slate-800">
+          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+            Urological Anatomical Abnormality / Congenital Variant
+          </label>
+          <select
+            value={anatomicalAbnormality}
+            onChange={(e) =>
+              setAnatomicalAbnormality(e.target.value as AnatomicalAbnormality)
+            }
+            className="w-full h-9 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100"
+          >
+            {ANATOMICAL_ABNORMALITIES.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

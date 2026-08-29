@@ -65,6 +65,15 @@ export type StoneClearanceStatus = "Complete" | "Residual Fragments" | "Not Appl
 export type EncrustationGrade = 0 | 1 | 2 | 3;
 export type EncrustationLocation = "Renal" | "Ureter" | "Bladder";
 export type RemovalDifficulty = "Simple" | "Moderate" | "Complex";
+export type AnatomicalAbnormality = 
+  | "None" 
+  | "PUJO" 
+  | "Horseshoe Kidney" 
+  | "Duplicated System" 
+  | "Ectopic Kidney" 
+  | "Malrotated Kidney" 
+  | "Ureterocele" 
+  | "Other";
 
 export interface ResearchEncrustation {
   id?: string;
@@ -78,6 +87,7 @@ export interface ResearchEncrustation {
   has_ckd: boolean;
   pregnancy_status: boolean;
   recurrent_stone_former: boolean;
+  anatomical_abnormality?: AnatomicalAbnormality;
   // Pre-op Urine
   urine_culture: UrineCulture;
   urine_ph?: number | null;

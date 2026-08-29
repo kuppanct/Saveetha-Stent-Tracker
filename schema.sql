@@ -116,6 +116,7 @@ CREATE TABLE IF NOT EXISTS research_encrustation (
     has_ckd BOOLEAN DEFAULT FALSE,
     pregnancy_status BOOLEAN DEFAULT FALSE,
     recurrent_stone_former BOOLEAN DEFAULT FALSE,
+    anatomical_abnormality VARCHAR(60) DEFAULT 'None',
     
     -- Pre-op Urine
     urine_culture VARCHAR(50) DEFAULT 'Sterile' CHECK (urine_culture IN ('Sterile', 'E.coli', 'Proteus', 'Klebsiella', 'Pseudomonas', 'Other')),

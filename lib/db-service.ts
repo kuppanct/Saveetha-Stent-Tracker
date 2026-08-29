@@ -1080,6 +1080,7 @@ export async function upsertResearchEncrustation(
     has_ckd: Boolean(input.has_ckd),
     pregnancy_status: Boolean(input.pregnancy_status),
     recurrent_stone_former: Boolean(input.recurrent_stone_former),
+    anatomical_abnormality: input.anatomical_abnormality || "None",
     urine_culture: input.urine_culture || "Sterile",
     urine_ph: input.urine_ph !== undefined ? input.urine_ph : null,
     procedure_type: input.procedure_type || "URSL",

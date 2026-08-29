@@ -146,17 +146,7 @@ export default function Dashboard() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <a
-            href="/api/research/export-csv"
-            download
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2.5 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-xl border border-indigo-200 dark:border-indigo-800 transition shadow-sm"
-            title="Download complete Stent Encrustation & Biocompatibility Research Study Dataset (CSV)"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Encrustation Study CSV</span>
-          </a>
-
+        <div className="flex items-center space-x-2.5">
           <button
             onClick={handleRunCron}
             disabled={cronTriggering}

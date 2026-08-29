@@ -71,7 +71,7 @@ export default function StatsCard({
   return (
     <div
       onClick={onClick}
-      className={`relative overflow-hidden p-4 rounded-2xl border shadow-sm transition-all duration-200 w-[230px] min-w-[230px] max-w-[230px] sm:w-auto sm:min-w-0 sm:max-w-none h-[126px] sm:h-[134px] flex flex-col justify-between snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
+      className={`relative overflow-hidden p-4 rounded-2xl border shadow-sm transition-all duration-200 w-[220px] min-w-[220px] max-w-[220px] sm:w-full sm:min-w-0 sm:max-w-none h-[132px] min-h-[132px] max-h-[132px] flex flex-col justify-between snap-start flex-shrink-0 sm:flex-shrink ${t.bg} ${t.border} ${
         onClick ? "cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]" : ""
       }`}
     >
