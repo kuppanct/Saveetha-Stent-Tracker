@@ -223,10 +223,11 @@ export default function ExchangeModal({ stent, isOpen, onClose, onSuccess }: Exc
 
               {/* Side Selector for Scenario B & C */}
               {(bilateralAction === "RETAIN_ONE_SIDE" || bilateralAction === "EXCHANGE_ONE_SIDE") && (
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-purple-200 dark:border-purple-800">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-purple-200 dark:border-purple-800">
                   <div>
-                    <label className="block text-[11px] font-bold text-rose-700 dark:text-rose-400 uppercase mb-1">
-                      Side REMOVED Today:
+                    <label className="block text-[11px] font-bold text-rose-700 dark:text-rose-400 uppercase mb-1 flex items-center space-x-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                      <span>Side REMOVED Today:</span>
                     </label>
                     <select
                       value={removedSide}
@@ -235,7 +236,7 @@ export default function ExchangeModal({ stent, isOpen, onClose, onSuccess }: Exc
                         setRemovedSide(rem);
                         setRetainedSide(rem === "Left" ? "Right" : "Left");
                       }}
-                      className="w-full h-10 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-slate-100"
+                      className="w-full h-11 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-slate-100"
                     >
                       <option value="Left">Left Kidney Stent</option>
                       <option value="Right">Right Kidney Stent</option>
@@ -243,11 +244,17 @@ export default function ExchangeModal({ stent, isOpen, onClose, onSuccess }: Exc
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-1">
-                      {bilateralAction === "RETAIN_ONE_SIDE" ? "Side RETAINED in situ:" : "Side with NEW Stent:"}
+                    <label className="block text-[11px] font-bold text-emerald-700 dark:text-emerald-400 uppercase mb-1 flex items-center space-x-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                      <span>{bilateralAction === "RETAIN_ONE_SIDE" ? "Side RETAINED in situ:" : "Side with NEW Stent:"}</span>
                     </label>
-                    <div className="h-10 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 rounded-xl font-bold text-emerald-900 dark:text-emerald-200 flex items-center">
-                      {retainedSide} Kidney ({bilateralAction === "RETAIN_ONE_SIDE" ? `Keeps original due date: ${stent.planned_removal_date}` : "Gets fresh due date"})
+                    <div className="min-h-[44px] px-3 py-2 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 rounded-xl font-bold text-emerald-900 dark:text-emerald-200 flex flex-col justify-center">
+                      <div className="text-xs">{retainedSide} Kidney Stent</div>
+                      <div className="text-[10px] font-normal text-emerald-700 dark:text-emerald-300 mt-0.5">
+                        {bilateralAction === "RETAIN_ONE_SIDE"
+                          ? `Keeps original due: ${stent.planned_removal_date}`
+                          : "Will get fresh removal timer"}
+                      </div>
                     </div>
                   </div>
                 </div>
