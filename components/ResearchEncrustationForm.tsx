@@ -82,6 +82,25 @@ const ANATOMICAL_ABNORMALITIES: { value: AnatomicalAbnormality; label: string }[
   { value: "Other", label: "Other Abnormality" },
 ];
 
+const STENT_CALIBER_OPTIONS = [
+  { value: 3.5, label: "3.5 Fr (Infant)" },
+  { value: 4.5, label: "4.5 Fr (Pediatric / Tight Ureter)" },
+  { value: 5.0, label: "5.0 Fr" },
+  { value: 6.0, label: "6.0 Fr (Standard Adult)" },
+  { value: 7.0, label: "7.0 Fr (Wide / Endopyelotomy)" },
+  { value: 8.0, label: "8.0 Fr (Large Caliber)" },
+];
+
+const STENT_LENGTH_OPTIONS = [
+  { value: 16, label: "16 cm (Pediatric)" },
+  { value: 20, label: "20 cm" },
+  { value: 22, label: "22 cm" },
+  { value: 24, label: "24 cm" },
+  { value: 26, label: "26 cm (Standard Adult)" },
+  { value: 28, label: "28 cm (Tall Patient / Complex)" },
+  { value: 30, label: "30 cm" },
+];
+
 export default function ResearchEncrustationForm({
   stent,
   initialData,
@@ -576,14 +595,15 @@ export default function ResearchEncrustationForm({
               Stent Caliber (French Size)
             </label>
             <select
-              value={stentSizeFr}
+              value={String(stentSizeFr)}
               onChange={(e) => setStentSizeFr(parseFloat(e.target.value))}
-              className="w-full h-9 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+              className="w-full h-9 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100"
             >
-              <option value="4.5">4.5 Fr (Pediatric/Tight Ureter)</option>
-              <option value="5.0">5.0 Fr</option>
-              <option value="6.0">6.0 Fr (Standard Adult)</option>
-              <option value="7.0">7.0 Fr (Endopyelotomy / Wide)</option>
+              {STENT_CALIBER_OPTIONS.map((c) => (
+                <option key={c.value} value={String(c.value)}>
+                  {c.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -592,14 +612,15 @@ export default function ResearchEncrustationForm({
               Stent Length (cm)
             </label>
             <select
-              value={stentLengthCm}
+              value={String(stentLengthCm)}
               onChange={(e) => setStentLengthCm(parseInt(e.target.value, 10))}
-              className="w-full h-9 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold"
+              className="w-full h-9 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-900 dark:text-slate-100"
             >
-              <option value="22">22 cm</option>
-              <option value="24">24 cm</option>
-              <option value="26">26 cm (Standard Adult)</option>
-              <option value="28">28 cm (Tall Patient / Complex)</option>
+              {STENT_LENGTH_OPTIONS.map((l) => (
+                <option key={l.value} value={String(l.value)}>
+                  {l.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
