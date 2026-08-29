@@ -228,6 +228,7 @@ export default function StentTable({
                 const badge = stent.urgency_badge;
                 const isLeft = stent.laterality === "Left";
                 const isRight = stent.laterality === "Right";
+                const chiefName = stent.unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
 
                 return (
                   <tr
