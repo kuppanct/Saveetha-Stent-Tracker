@@ -22,16 +22,23 @@ import {
   MapPin, 
   ShieldAlert,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Mic,
+  WifiOff
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import ExchangeModal from "@/components/ExchangeModal";
+import VoiceDictateModal from "@/components/VoiceDictateModal";
+import { queueOfflineStent } from "@/lib/offline-sync";
+import { VoiceParsedStent } from "@/lib/voice-parser";
 
 type InsertionMode = "SINGLE" | "DUAL_DIFFERENT";
 
 export default function QuickAddStentPage() {
   const router = useRouter();
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
+  const [savedOffline, setSavedOffline] = useState<boolean>(false);
 
   // Patient Fields
   const [uhid, setUhid] = useState("");
@@ -152,6 +159,33 @@ export default function QuickAddStentPage() {
     return () => clearTimeout(timer);
   }, [uhid, laterality, insertionMode]);
 
+  const handleVoiceApply = (data: VoiceParsedStent) => {
+    if (data.uhid) setUhid(data.uhid);
+    if (data.name) setName(data.name);
+    if (data.phone) setPhone(data.phone);
+    if (data.unit) {
+      setUnit(data.unit);
+      if (!data.inserted_by) {
+        setInsertedBy(data.unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha");
+      }
+    }
+    if (data.inserted_by) setInsertedBy(data.inserted_by);
+    if (data.notes) setNotes(data.notes);
+    if (data.residual_stone !== undefined) {
+      setResidualStone(data.residual_stone);
+      setLeftResidualStone(data.residual_stone);
+      setRightResidualStone(data.residual_stone);
+    }
+    if (data.is_dual_material) {
+      setInsertionMode("DUAL_DIFFERENT");
+      if (data.left_material) handleLeftMaterialChange(data.left_material);
+      if (data.right_material) handleRightMaterialChange(data.right_material);
+    } else {
+      if (data.laterality) setLaterality(data.laterality);
+      if (data.material) handleMaterialChange(data.material);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -192,6 +226,16 @@ export default function QuickAddStentPage() {
         payload.residual_stone = residualStone;
       }
 
+      // Check if offline in OT
+      if (typeof window !== "undefined" && !navigator.onLine) {
+        queueOfflineStent(payload);
+        setSavedOffline(true);
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+        return;
+      }
+
       const res = await fetch("/api/stents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -208,7 +252,27 @@ export default function QuickAddStentPage() {
         alert(`Error registering stent: ${err.error || "Please check required fields"}`);
       }
     } catch (e) {
-      alert("Failed to submit form");
+      // Network drop fallback to local outbox
+      console.warn("Network error during submission, saving offline in OT:", e);
+      queueOfflineStent({
+        uhid: uhid.trim().toUpperCase(),
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address.trim() || undefined,
+        second_language: secondLanguage,
+        unit,
+        inserted_by: insertedBy.trim(),
+        notes: notes.trim() || undefined,
+        laterality,
+        material,
+        insertion_date: insertionDate,
+        planned_removal_date: plannedRemovalDate,
+        residual_stone: residualStone,
+      });
+      setSavedOffline(true);
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     } finally {
       setSaving(false);
     }
@@ -217,22 +281,50 @@ export default function QuickAddStentPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       
-      {/* Header Banner */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+      {/* Header Banner with Voice Dictate Button */}
+      <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2.5 rounded-xl bg-sky-100 text-sky-700">
+          <div className="p-2.5 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-400">
             <UserPlus className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-100">
               Quick-Add DJ Stent Registration
             </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Supports single stents or Bilateral cases with different materials per side. Planned removal dates calculate automatically.
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Single & Bilateral split stents • Automatic Planned removal dates • Full OT Offline Support.
             </p>
           </div>
         </div>
+
+        {/* 🎙️ Hands-Free OT Voice Dictate Button */}
+        <button
+          type="button"
+          onClick={() => setIsVoiceModalOpen(true)}
+          className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md flex items-center justify-center space-x-2 transition transform hover:scale-105 active:scale-95"
+        >
+          <Mic className="w-4 h-4 animate-pulse" />
+          <span>🎙️ Dictate in OT (Hands-Free)</span>
+        </button>
       </div>
+
+      {/* Voice Dictation Modal */}
+      <VoiceDictateModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onApply={handleVoiceApply}
+      />
+
+      {/* Offline Success Banner */}
+      {savedOffline && (
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-400 rounded-2xl p-4 shadow-sm flex items-center space-x-3 text-emerald-900 dark:text-emerald-200 animate-fadeIn">
+          <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
+          <div>
+            <p className="font-bold text-sm">Saved locally in OT Storage!</p>
+            <p className="text-xs">Your stent record is saved on your phone and will auto-sync to Saveetha Cloud the moment network connects.</p>
+          </div>
+        </div>
+      )}
 
       {/* DEDUPLICATION ALERT BANNER */}
       {duplicateWarning?.hasDuplicate && (

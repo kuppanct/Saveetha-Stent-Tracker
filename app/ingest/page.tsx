@@ -22,7 +22,9 @@ import {
   Calendar,
   Layers,
   Image as ImageIcon,
-  MapPin
+  MapPin,
+  Mic,
+  WifiOff
 } from "lucide-react";
 import Papa from "papaparse";
 import { createWorker } from "tesseract.js";
@@ -30,6 +32,9 @@ import { ParsedStentEntry } from "@/lib/text-parser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UnitType, Laterality, StentMaterial, UROLOGY_SURGEONS } from "@/lib/types";
+import VoiceDictateModal from "@/components/VoiceDictateModal";
+import { queueOfflineStent } from "@/lib/offline-sync";
+import { VoiceParsedStent } from "@/lib/voice-parser";
 
 type TabChannel = "FORM" | "BOT" | "OCR" | "CSV";
 
@@ -37,6 +42,8 @@ export default function IngestionHubPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabChannel>("OCR");
   const [connectedPhone, setConnectedPhone] = useState<string | null>(null);
+  const [isVoiceModalOpen, setIsVoiceModalOpen] = useState<boolean>(false);
+  const [savedOffline, setSavedOffline] = useState<boolean>(false);
 
   useEffect(() => {
     fetch("/api/whatsapp/status")
@@ -182,6 +189,47 @@ export default function IngestionHubPage() {
     }
   };
 
+  const handleVoiceApply = (data: VoiceParsedStent) => {
+    const today = new Date().toISOString().split("T")[0];
+    const initialMat: StentMaterial = data.material || "Carbothane";
+    const initialUnit: UnitType = data.unit || "Unit 1";
+    const defaultDoctor = initialUnit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
+
+    const newDraft: ParsedStentEntry = {
+      uhid: data.uhid || `SMCH-${Math.floor(100000 + Math.random() * 900000)}`,
+      name: data.name || "Patient",
+      phone: data.phone || "9840123456",
+      second_language: "Tamil",
+      unit: initialUnit,
+      laterality: data.laterality || "Right",
+      material: initialMat,
+      insertion_date: today,
+      planned_removal_date: calculatePlannedDate(today, initialMat),
+      residual_stone: data.residual_stone || false,
+      inserted_by: data.inserted_by || defaultDoctor,
+      notes: data.notes || undefined,
+    };
+
+    setParsedDraft(newDraft);
+
+    if (data.is_dual_material) {
+      setIsDualMaterial(true);
+      const leftMat = data.left_material || initialMat;
+      const rightMat = data.right_material || initialMat;
+      setLeftMaterial(leftMat);
+      setLeftInsertionDate(today);
+      setLeftPlannedDate(calculatePlannedDate(today, leftMat));
+      setLeftResidualStone(data.residual_stone || false);
+
+      setRightMaterial(rightMat);
+      setRightInsertionDate(today);
+      setRightPlannedDate(calculatePlannedDate(today, rightMat));
+      setRightResidualStone(data.residual_stone || false);
+    } else {
+      setIsDualMaterial(false);
+    }
+  };
+
   const handleSaveOcrDraft = async () => {
     if (!parsedDraft) return;
     setOcrSaving(true);
@@ -204,6 +252,16 @@ export default function IngestionHubPage() {
             is_dual_material: false,
           };
 
+      // Check if offline in OT
+      if (typeof window !== "undefined" && !navigator.onLine) {
+        queueOfflineStent(payload);
+        setOcrSuccess(true);
+        setTimeout(() => {
+          router.push("/");
+        }, 1200);
+        return;
+      }
+
       const res = await fetch("/api/stents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -219,7 +277,23 @@ export default function IngestionHubPage() {
         alert(`Error saving stent: ${err.error || "Failed to commit record"}`);
       }
     } catch (e) {
-      alert("Error committing stent record");
+      console.warn("Network error, saving offline in OT:", e);
+      queueOfflineStent({
+        ...parsedDraft,
+        is_dual_material: isDualMaterial,
+        left_material: leftMaterial,
+        left_insertion_date: leftInsertionDate,
+        left_planned_removal_date: leftPlannedDate,
+        left_residual_stone: leftResidualStone,
+        right_material: rightMaterial,
+        right_insertion_date: rightInsertionDate,
+        right_planned_removal_date: rightPlannedDate,
+        right_residual_stone: rightResidualStone,
+      });
+      setOcrSuccess(true);
+      setTimeout(() => {
+        router.push("/");
+      }, 1200);
     } finally {
       setOcrSaving(false);
     }
@@ -288,17 +362,36 @@ export default function IngestionHubPage() {
             </h1>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-            4 redundant pathways designed to eliminate data entry fatigue • Unit 1 (Prof. N. Muthulatha) & Unit 2 (Prof. M. Sivasankar)
+            4 redundant pathways: Voice OT Dictation • Camera OCR • WhatsApp OT Bot • CSV Backlog
           </p>
         </div>
 
-        <Link
-          href="/"
-          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition self-start md:self-auto"
-        >
-          ← Return to Dashboard
-        </Link>
+        <div className="flex items-center space-x-2.5 self-start md:self-auto">
+          {/* 🎙️ Hands-Free OT Voice Dictate Button */}
+          <button
+            type="button"
+            onClick={() => setIsVoiceModalOpen(true)}
+            className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md flex items-center space-x-1.5 transition transform hover:scale-105 active:scale-95"
+          >
+            <Mic className="w-4 h-4 animate-pulse" />
+            <span>🎙️ Dictate in OT</span>
+          </button>
+
+          <Link
+            href="/"
+            className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition"
+          >
+            ← Dashboard
+          </Link>
+        </div>
       </div>
+
+      {/* Voice Dictation Modal */}
+      <VoiceDictateModal
+        isOpen={isVoiceModalOpen}
+        onClose={() => setIsVoiceModalOpen(false)}
+        onApply={handleVoiceApply}
+      />
 
       {/* 4 Pathway Channel Selector Tabs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-200/70 dark:bg-slate-800/60 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
