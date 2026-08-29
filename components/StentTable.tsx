@@ -65,7 +65,7 @@ export default function StentTable({
     <div className="space-y-3">
       
       {/* =========================================================================
-          MOBILE VIEW (< 640px): Interactive Touch Cards (No Horizontal Overflow)
+          MOBILE VIEW (< 640px): Responsive Action Cards
           ========================================================================= */}
       <div className="block sm:hidden space-y-3">
         {stents.map((stent) => {
@@ -73,6 +73,7 @@ export default function StentTable({
           const badge = stent.urgency_badge;
           const isLeft = stent.laterality === "Left";
           const isRight = stent.laterality === "Right";
+          const chiefName = stent.unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
 
           return (
             <div
@@ -85,7 +86,7 @@ export default function StentTable({
                   : "border-slate-200 dark:border-[#1f293d]"
               }`}
             >
-              {/* Header: Name, UHID, Urgency Badge */}
+              {/* Header: Name, UHID, Urgency Badge & Discrete Delete Button */}
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center space-x-1">
@@ -101,11 +102,22 @@ export default function StentTable({
                   </p>
                 </div>
 
-                {badge && (
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${badge.bg} ${badge.color} ${badge.border}`}>
-                    {badge.label}
-                  </span>
-                )}
+                <div className="flex items-center space-x-1.5 shrink-0">
+                  {badge && (
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border shrink-0 ${badge.bg} ${badge.color} ${badge.border}`}>
+                      {badge.label}
+                    </span>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(stent)}
+                      className="p-1 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition"
+                      title="Delete Record"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Side, Material & Dates */}
@@ -130,19 +142,21 @@ export default function StentTable({
                 </div>
               </div>
 
-              {/* Unit & Doctor */}
+              {/* Unit & Unit Chief Name */}
               <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-0.5">
                 <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-semibold text-slate-700 dark:text-slate-300">
                   {stent.unit}
                 </span>
-                <span className="truncate max-w-[170px]">{stent.inserted_by}</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 truncate max-w-[190px]">
+                  {chiefName}
+                </span>
               </div>
 
-              {/* Action Buttons */}
-              <div className="grid grid-cols-5 gap-1 pt-1 border-t border-slate-100 dark:border-slate-800/80">
+              {/* Action Buttons: Exact 5-Column Single Row Layout */}
+              <div className="grid grid-cols-5 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
                 <button
                   onClick={() => onLogCall(stent)}
-                  className="py-2 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  className="py-2 px-1 bg-sky-50 dark:bg-sky-900/30 text-sky-700 dark:text-sky-300 hover:bg-sky-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
                   title="Log Call"
                 >
                   <Phone className="w-3.5 h-3.5 mb-0.5" />
@@ -151,7 +165,7 @@ export default function StentTable({
 
                 <button
                   onClick={() => onPreviewMessage(stent)}
-                  className="py-2 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  className="py-2 px-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
                   title="WhatsApp Alert"
                 >
                   <MessageSquare className="w-3.5 h-3.5 mb-0.5" />
@@ -161,7 +175,7 @@ export default function StentTable({
                 {onEdit && (
                   <button
                     onClick={() => onEdit(stent)}
-                    className="py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                    className="py-2 px-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
                     title="Edit Record"
                   >
                     <Edit3 className="w-3.5 h-3.5 mb-0.5" />
@@ -171,27 +185,16 @@ export default function StentTable({
 
                 <button
                   onClick={() => onExchange(stent)}
-                  className="py-2 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  className="py-2 px-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-100 rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
                   title="Exchange Stent"
                 >
                   <RefreshCw className="w-3.5 h-3.5 mb-0.5" />
                   <span>Exch</span>
                 </button>
 
-                {onDelete && (
-                  <button
-                    onClick={() => onDelete(stent)}
-                    className="py-2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition"
-                    title="Delete Record"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mb-0.5" />
-                    <span>Del</span>
-                  </button>
-                )}
-
                 <button
                   onClick={() => onRemove(stent)}
-                  className="py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-emerald-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center"
+                  className="py-2 px-1 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 hover:bg-emerald-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition shadow-sm"
                   title="Mark Removed"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 mb-0.5" />
@@ -316,8 +319,8 @@ export default function StentTable({
                       <span className="font-semibold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-[11px]">
                         {stent.unit}
                       </span>
-                      <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate max-w-[160px]" title={stent.inserted_by}>
-                        {stent.inserted_by}
+                      <div className="text-[11px] font-bold text-slate-800 dark:text-slate-200 mt-1 truncate max-w-[160px]" title={chiefName}>
+                        {chiefName}
                       </div>
                     </td>
 

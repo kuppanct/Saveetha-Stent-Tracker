@@ -12,7 +12,8 @@ import {
   Layers, 
   ShieldCheck, 
   AlertTriangle,
-  Edit3
+  Edit3,
+  Trash2
 } from "lucide-react";
 
 interface EditStentModalProps {
@@ -329,22 +330,23 @@ export default function EditStentModal({
             </div>
           </div>
 
-          {/* Action Buttons with Delete Option */}
-          <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+          {/* Action Buttons with Delete Option (No-Overlap Responsive Layout) */}
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={handleDelete}
               disabled={deleting || loading}
-              className="px-3.5 py-2 text-xs font-bold text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition border border-rose-200 dark:border-rose-900/50 flex items-center space-x-1.5 disabled:opacity-50"
+              className="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-xl transition border border-rose-200 dark:border-rose-900/50 flex items-center justify-center space-x-1.5 disabled:opacity-50"
             >
-              <span>{deleting ? "Deleting..." : "🗑️ Delete Record"}</span>
+              <Trash2 className="w-4 h-4" />
+              <span>{deleting ? "Deleting..." : "Delete Record (Type delete)"}</span>
             </button>
 
-            <div className="flex items-center space-x-2">
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition"
+                className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition text-center"
               >
                 Cancel
               </button>
@@ -352,10 +354,10 @@ export default function EditStentModal({
               <button
                 type="submit"
                 disabled={loading || deleting}
-                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-md transition flex items-center space-x-1.5 disabled:opacity-50"
+                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold shadow-md transition flex items-center justify-center space-x-1.5 disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
-                <span>{loading ? "Saving Changes..." : "Save Changes"}</span>
+                <span>{loading ? "Saving..." : "Save Changes"}</span>
               </button>
             </div>
           </div>

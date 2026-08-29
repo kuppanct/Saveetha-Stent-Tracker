@@ -367,41 +367,84 @@ export default function Dashboard() {
         onDelete={handleDeleteStent}
       />
 
-      {/* Modals */}
-      <CallLogModal
-        stent={selectedStent}
-        isOpen={isCallModalOpen}
-        onClose={() => setIsCallModalOpen(false)}
-        onSuccess={() => fetchData()}
-      />
+      {/* Modals with Clean DOM Unmounting */}
+      {isCallModalOpen && (
+        <CallLogModal
+          stent={selectedStent}
+          isOpen={isCallModalOpen}
+          onClose={() => {
+            setIsCallModalOpen(false);
+            setSelectedStent(null);
+          }}
+          onSuccess={() => {
+            setIsCallModalOpen(false);
+            setSelectedStent(null);
+            fetchData();
+          }}
+        />
+      )}
 
-      <RemovalModal
-        stent={selectedStent}
-        isOpen={isRemoveModalOpen}
-        onClose={() => setIsRemoveModalOpen(false)}
-        onSuccess={() => fetchData()}
-      />
+      {isRemoveModalOpen && (
+        <RemovalModal
+          stent={selectedStent}
+          isOpen={isRemoveModalOpen}
+          onClose={() => {
+            setIsRemoveModalOpen(false);
+            setSelectedStent(null);
+          }}
+          onSuccess={() => {
+            setIsRemoveModalOpen(false);
+            setSelectedStent(null);
+            fetchData();
+          }}
+        />
+      )}
 
-      <ExchangeModal
-        stent={selectedStent}
-        isOpen={isExchangeModalOpen}
-        onClose={() => setIsExchangeModalOpen(false)}
-        onSuccess={() => fetchData()}
-      />
+      {isExchangeModalOpen && (
+        <ExchangeModal
+          stent={selectedStent}
+          isOpen={isExchangeModalOpen}
+          onClose={() => {
+            setIsExchangeModalOpen(false);
+            setSelectedStent(null);
+          }}
+          onSuccess={() => {
+            setIsExchangeModalOpen(false);
+            setSelectedStent(null);
+            fetchData();
+          }}
+        />
+      )}
 
-      <MessagePreviewModal
-        stent={selectedStent}
-        isOpen={isMsgModalOpen}
-        onClose={() => setIsMsgModalOpen(false)}
-      />
+      {isMsgModalOpen && (
+        <MessagePreviewModal
+          stent={selectedStent}
+          isOpen={isMsgModalOpen}
+          onClose={() => {
+            setIsMsgModalOpen(false);
+            setSelectedStent(null);
+          }}
+        />
+      )}
 
-      {selectedStent && (
+      {selectedStent && isEditModalOpen && (
         <EditStentModal
           stent={selectedStent}
           isOpen={isEditModalOpen}
-          onClose={() => setIsEditModalOpen(false)}
-          onSuccess={() => fetchData()}
-          onDelete={() => fetchData()}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setSelectedStent(null);
+          }}
+          onSuccess={() => {
+            setIsEditModalOpen(false);
+            setSelectedStent(null);
+            fetchData();
+          }}
+          onDelete={() => {
+            setIsEditModalOpen(false);
+            setSelectedStent(null);
+            fetchData();
+          }}
         />
       )}
     </div>
