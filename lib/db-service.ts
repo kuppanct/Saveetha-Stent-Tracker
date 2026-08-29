@@ -724,11 +724,28 @@ export async function removeStent(
 
   stent.status = "Removed";
   stent.removal_date = finalRemovalDate;
-  if (notes) stent.notes = notes;
-  stent.updated_at = nowIso;
-
   const patient = mockPatients.find((p) => p.id === stent.patient_id);
   return enrichStent(stent, patient, mockStents);
+}
+
+export async function deleteStent(stentId: string): Promise<boolean> {
+  if (isSupabaseConfigured && supabase) {
+    // Delete any call_logs referencing this stent first
+    await supabase.from("call_logs").delete().eq("stent_id", stentId);
+
+    const { error } = await supabase.from("stents").delete().eq("id", stentId);
+    if (error) {
+      throw new Error(`Failed to delete stent: ${error.message}`);
+    }
+    return true;
+  }
+
+  const index = mockStents.findIndex((s) => s.id === stentId);
+  if (index !== -1) {
+    mockStents.splice(index, 1);
+    return true;
+  }
+  return false;
 }
 
 export async function logCall(

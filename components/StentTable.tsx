@@ -12,7 +12,8 @@ import {
   User,
   Layers,
   ChevronRight,
-  Edit3
+  Edit3,
+  Trash2
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -24,6 +25,7 @@ interface StentTableProps {
   onExchange: (stent: Stent) => void;
   onPreviewMessage: (stent: Stent) => void;
   onEdit?: (stent: Stent) => void;
+  onDelete?: (stent: Stent) => void;
 }
 
 export default function StentTable({
@@ -34,6 +36,7 @@ export default function StentTable({
   onExchange,
   onPreviewMessage,
   onEdit,
+  onDelete,
 }: StentTableProps) {
   if (loading) {
     return (
@@ -174,6 +177,17 @@ export default function StentTable({
                   <RefreshCw className="w-3.5 h-3.5 mb-0.5" />
                   <span>Exch</span>
                 </button>
+
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(stent)}
+                    className="py-2 bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white rounded-xl text-[11px] font-bold flex flex-col items-center justify-center transition"
+                    title="Delete Record"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mb-0.5" />
+                    <span>Del</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => onRemove(stent)}
@@ -353,11 +367,32 @@ export default function StentTable({
                             >
                               <CheckCircle2 className="w-4 h-4" />
                             </button>
+
+                            {onDelete && (
+                              <button
+                                onClick={() => onDelete(stent)}
+                                title={`Delete Stent Record`}
+                                className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-200 dark:border-rose-900/50 transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
                           </>
                         ) : (
-                          <span className="text-xs font-semibold text-slate-400 italic">
-                            Archived ({stent.status})
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-semibold text-slate-400 italic">
+                              Archived ({stent.status})
+                            </span>
+                            {onDelete && (
+                              <button
+                                onClick={() => onDelete(stent)}
+                                title={`Delete Archived Record`}
+                                className="p-1.5 rounded-lg text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>

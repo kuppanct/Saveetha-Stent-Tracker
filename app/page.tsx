@@ -104,6 +104,24 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteStent = async (stent: Stent) => {
+    const confirmed = window.confirm(
+      `⚠️ PERMANENT DELETE CONFIRMATION:\n\nAre you sure you want to delete the ${stent.laterality} stent record for ${stent.patient?.name || "Patient"} (UHID: ${stent.patient?.uhid})?\n\nThis will remove the entry from the database.`
+    );
+    if (!confirmed) return;
+    try {
+      const res = await fetch(`/api/stents/${stent.id}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchData();
+      } else {
+        const err = await res.json();
+        alert(`Error deleting stent: ${err.error || "Failed to delete"}`);
+      }
+    } catch {
+      alert("Network error while deleting stent");
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -339,6 +357,7 @@ export default function Dashboard() {
           setSelectedStent(stent);
           setIsEditModalOpen(true);
         }}
+        onDelete={handleDeleteStent}
       />
 
       {/* Modals */}
@@ -375,6 +394,7 @@ export default function Dashboard() {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           onSuccess={() => fetchData()}
+          onDelete={handleDeleteStent}
         />
       )}
     </div>
