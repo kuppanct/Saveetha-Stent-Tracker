@@ -42,7 +42,8 @@ export default function RemovalModal({
       });
 
       if (!res.ok) {
-        alert("Failed to mark stent as removed");
+        const errJson = await res.json().catch(() => ({}));
+        alert(`Failed to mark stent as removed: ${errJson.error || "Server error"}`);
         setLoading(false);
         return;
       }

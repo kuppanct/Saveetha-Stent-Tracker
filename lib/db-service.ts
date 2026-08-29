@@ -617,7 +617,7 @@ export async function exchangeStent(
       .from("stents")
       .update({
         status: "Exchanged",
-        removal_date: todayStr,
+        actual_removal_date: todayStr,
         updated_at: nowIso,
       })
       .eq("id", input.old_stent_id)
@@ -702,20 +702,46 @@ export async function removeStent(
   const nowIso = new Date().toISOString();
 
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+    // 1. Update using standard schema columns (actual_removal_date, removal_notes)
+    const updateObj: Record<string, any> = {
+      status: "Removed",
+      actual_removal_date: finalRemovalDate,
+      updated_at: nowIso,
+    };
+    if (notes) {
+      updateObj.removal_notes = notes;
+      updateObj.notes = notes;
+    }
+
+    let { data, error } = await supabase
       .from("stents")
-      .update({
-        status: "Removed",
-        removal_date: finalRemovalDate,
-        notes: notes || undefined,
-        updated_at: nowIso,
-      })
+      .update(updateObj)
       .eq("id", stentId)
       .select("*, patient:patients(*)")
-      .single();
+      .maybeSingle();
+
+    // 2. Fallback if the database has removal_date column
+    if (error && error.message?.includes("actual_removal_date")) {
+      const fallbackObj: Record<string, any> = {
+        status: "Removed",
+        removal_date: finalRemovalDate,
+        updated_at: nowIso,
+      };
+      if (notes) fallbackObj.notes = notes;
+
+      const fallbackRes = await supabase
+        .from("stents")
+        .update(fallbackObj)
+        .eq("id", stentId)
+        .select("*, patient:patients(*)")
+        .single();
+      data = fallbackRes.data;
+      error = fallbackRes.error;
+    }
 
     if (error || !data) {
-      throw new Error(`Failed to remove stent: ${error?.message}`);
+      console.error("Supabase removeStent error:", error);
+      throw new Error(`Failed to remove stent: ${error?.message || "Record not found"}`);
     }
     return enrichStent(data as Stent, data.patient);
   }
@@ -725,6 +751,11 @@ export async function removeStent(
 
   stent.status = "Removed";
   stent.removal_date = finalRemovalDate;
+  stent.actual_removal_date = finalRemovalDate;
+  if (notes) {
+    stent.notes = notes;
+    stent.removal_notes = notes;
+  }
   const patient = mockPatients.find((p) => p.id === stent.patient_id);
   return enrichStent(stent, patient, mockStents);
 }

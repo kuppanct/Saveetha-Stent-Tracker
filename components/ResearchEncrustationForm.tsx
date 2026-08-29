@@ -83,12 +83,9 @@ const ANATOMICAL_ABNORMALITIES: { value: AnatomicalAbnormality; label: string }[
 ];
 
 const STENT_CALIBER_OPTIONS = [
-  { value: 3.5, label: "3.5 Fr (Infant)" },
-  { value: 4.5, label: "4.5 Fr (Pediatric / Tight Ureter)" },
-  { value: 5.0, label: "5.0 Fr" },
-  { value: 6.0, label: "6.0 Fr (Standard Adult)" },
-  { value: 7.0, label: "7.0 Fr (Wide / Endopyelotomy)" },
-  { value: 8.0, label: "8.0 Fr (Large Caliber)" },
+  { value: 3.8, label: "3.8 Fr (Pediatric / Slim)" },
+  { value: 5.0, label: "5.0 Fr (5 Fr)" },
+  { value: 6.0, label: "6.0 Fr (6 Fr - Standard Adult)" },
 ];
 
 const STENT_LENGTH_OPTIONS = [
