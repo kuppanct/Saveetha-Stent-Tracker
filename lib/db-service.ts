@@ -1143,18 +1143,34 @@ export async function upsertResearchEncrustation(
   };
 
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("research_encrustation")
       .upsert(record, { onConflict: "stent_id" })
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
-      console.warn("Supabase UPSERT fallback:", error.message);
-      // If table is not yet migrated, save locally
-    } else if (data) {
-      return data as ResearchEncrustation;
+      console.warn("Supabase UPSERT first attempt error:", error.message);
+      // If anatomical_abnormality column is not in Supabase yet, retry without it
+      if (error.message?.includes("anatomical_abnormality")) {
+        const fallbackRecord = { ...record };
+        delete (fallbackRecord as any).anatomical_abnormality;
+        const retry = await supabase
+          .from("research_encrustation")
+          .upsert(fallbackRecord, { onConflict: "stent_id" })
+          .select()
+          .maybeSingle();
+        data = retry.data;
+        error = retry.error;
+      }
     }
+
+    if (error || !data) {
+      console.error("Supabase UPSERT fatal error in research_encrustation:", error);
+      throw new Error(`Failed to save research record to database: ${error?.message || "Unknown error"}`);
+    }
+
+    return data as ResearchEncrustation;
   }
 
   // Local fallback
