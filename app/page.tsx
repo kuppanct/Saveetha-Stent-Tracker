@@ -105,10 +105,17 @@ export default function Dashboard() {
   };
 
   const handleDeleteStent = async (stent: Stent) => {
-    const confirmed = window.confirm(
-      `⚠️ PERMANENT DELETE CONFIRMATION:\n\nAre you sure you want to delete the ${stent.laterality} stent record for ${stent.patient?.name || "Patient"} (UHID: ${stent.patient?.uhid})?\n\nThis will remove the entry from the database.`
+    const password = window.prompt(
+      `⚠️ SECURITY CONFIRMATION REQUIRED:\n\nTo delete the ${stent.laterality} stent record for ${stent.patient?.name || "Patient"} (UHID: ${stent.patient?.uhid}), please type the confirmation password below:\n\nPassword: delete`
     );
-    if (!confirmed) return;
+
+    if (password === null) return; // User clicked Cancel
+
+    if (password.trim().toLowerCase() !== "delete") {
+      alert("❌ Incorrect password. Deletion cancelled.");
+      return;
+    }
+
     try {
       const res = await fetch(`/api/stents/${stent.id}`, { method: "DELETE" });
       if (res.ok) {
