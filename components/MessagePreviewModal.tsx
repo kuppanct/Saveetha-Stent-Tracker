@@ -95,6 +95,24 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
     }
   };
 
+  const handleDirectWebClick = async () => {
+    if (!stent.patient?.phone) return;
+    try {
+      await fetch("/api/whatsapp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: stent.patient.phone,
+          message: fullMessage,
+          stent_id: stent.id,
+          patient_id: stent.patient_id,
+          trigger_type: `${templateType}_WEB_DIRECT`,
+        }),
+      });
+      fetchHistory();
+    } catch {}
+  };
+
   const waDirectUrl = `https://wa.me/91${stent.patient?.phone?.replace(/\D/g, "")}?text=${encodeURIComponent(fullMessage)}`;
 
   return (
@@ -189,10 +207,11 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
                 href={waDirectUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="px-3.5 py-2 bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-200 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition"
+                onClick={handleDirectWebClick}
+                className="px-3.5 py-2 bg-emerald-100 dark:bg-emerald-900/60 hover:bg-emerald-200 text-emerald-800 dark:text-emerald-200 rounded-xl text-xs font-semibold flex items-center space-x-1.5 transition shadow-sm"
               >
                 <ExternalLink className="w-4 h-4" />
-                <span>Open in WhatsApp Web</span>
+                <span>Open in WhatsApp Web (Auto-Logged)</span>
               </a>
             </div>
 
