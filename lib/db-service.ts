@@ -792,6 +792,7 @@ export async function logCall(
   notes: string,
   loggedBy: string = "Technician"
 ): Promise<CallLog> {
+  const nowIso = new Date().toISOString();
   const newLog: CallLog = {
     id: `c-${Date.now()}`,
     stent_id: stentId,
@@ -799,11 +800,12 @@ export async function logCall(
     outcome,
     notes,
     logged_by: loggedBy,
-    created_at: new Date().toISOString(),
+    call_timestamp: nowIso,
+    created_at: nowIso,
   };
 
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("call_logs")
       .insert({
         stent_id: stentId,
@@ -811,11 +813,34 @@ export async function logCall(
         outcome,
         notes,
         logged_by: loggedBy,
+        call_timestamp: nowIso,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (!error && data) return data as CallLog;
+    if (error && error.message?.includes("call_timestamp")) {
+      const fallback = await supabase
+        .from("call_logs")
+        .insert({
+          stent_id: stentId,
+          patient_id: patientId,
+          outcome,
+          notes,
+          logged_by: loggedBy,
+        })
+        .select()
+        .maybeSingle();
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    if (!error && data) {
+      return {
+        ...data,
+        call_timestamp: data.call_timestamp || data.created_at || nowIso,
+        created_at: data.call_timestamp || data.created_at || nowIso,
+      } as CallLog;
+    }
   }
 
   mockCallLogs.unshift(newLog);
@@ -827,15 +852,17 @@ export async function getCallLogs(stentId?: string, patientId?: string): Promise
     let query = supabase.from("call_logs").select("*, patient:patients(name, uhid)");
     if (stentId) query = query.eq("stent_id", stentId);
     if (patientId) query = query.eq("patient_id", patientId);
-    query = query.order("created_at", { ascending: false });
 
     const { data, error } = await query;
     if (!error && data) {
-      return data.map((item: any) => ({
+      const mapped = data.map((item: any) => ({
         ...item,
+        call_timestamp: item.call_timestamp || item.created_at,
+        created_at: item.call_timestamp || item.created_at || new Date().toISOString(),
         patient_name: item.patient?.name,
         uhid: item.patient?.uhid,
       }));
+      return mapped.sort((a: any, b: any) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
     }
   }
 
@@ -847,6 +874,8 @@ export async function getCallLogs(stentId?: string, patientId?: string): Promise
     const pat = mockPatients.find((p) => p.id === l.patient_id);
     return {
       ...l,
+      call_timestamp: l.call_timestamp || l.created_at,
+      created_at: l.call_timestamp || l.created_at,
       patient_name: pat?.name,
       uhid: pat?.uhid,
     };
@@ -862,6 +891,7 @@ export async function logNotification(
   status: "SENT" | "FAILED" | "PENDING",
   errorMessage?: string
 ): Promise<NotificationLog> {
+  const nowIso = new Date().toISOString();
   const newLog: NotificationLog = {
     id: `n-${Date.now()}`,
     stent_id: stentId,
@@ -870,12 +900,14 @@ export async function logNotification(
     recipient_phone: recipientPhone,
     message_body: messageBody,
     status,
-    sent_at: new Date().toISOString(),
+    delivery_status: status,
+    sent_at: nowIso,
+    sent_timestamp: nowIso,
     error_message: errorMessage,
   };
 
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("notification_logs")
       .insert({
         stent_id: stentId,
@@ -883,40 +915,76 @@ export async function logNotification(
         trigger_type: triggerType,
         recipient_phone: recipientPhone,
         message_body: messageBody,
-        status,
+        delivery_status: status,
+        sent_timestamp: nowIso,
         error_message: errorMessage,
       })
       .select()
-      .single();
+      .maybeSingle();
 
-    if (!error && data) return data as NotificationLog;
+    if (error && (error.message?.includes("delivery_status") || error.message?.includes("sent_timestamp"))) {
+      const fallback = await supabase
+        .from("notification_logs")
+        .insert({
+          stent_id: stentId,
+          patient_id: patientId,
+          trigger_type: triggerType,
+          recipient_phone: recipientPhone,
+          message_body: messageBody,
+          status,
+          sent_at: nowIso,
+          error_message: errorMessage,
+        })
+        .select()
+        .maybeSingle();
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    if (!error && data) {
+      return {
+        ...data,
+        status: data.delivery_status || data.status || status,
+        delivery_status: data.delivery_status || data.status || status,
+        sent_at: data.sent_timestamp || data.sent_at || nowIso,
+        sent_timestamp: data.sent_timestamp || data.sent_at || nowIso,
+      } as NotificationLog;
+    }
   }
 
   mockNotificationLogs.unshift(newLog);
   return newLog;
 }
 
-export async function getNotificationLogs(limit: number = 50): Promise<NotificationLog[]> {
+export async function getNotificationLogs(stentId?: string, limit: number = 50): Promise<NotificationLog[]> {
   if (isSupabaseConfigured && supabase) {
-    const { data, error } = await supabase
-      .from("notification_logs")
-      .select("*, patient:patients(name)")
-      .order("sent_at", { ascending: false })
-      .limit(limit);
+    let query = supabase.from("notification_logs").select("*, patient:patients(name, uhid)");
+    if (stentId) query = query.eq("stent_id", stentId);
+    query = query.limit(limit);
 
+    const { data, error } = await query;
     if (!error && data) {
-      return data.map((item: any) => ({
+      const mapped = data.map((item: any) => ({
         ...item,
+        status: item.delivery_status || item.status || "SENT",
+        delivery_status: item.delivery_status || item.status || "SENT",
+        sent_at: item.sent_timestamp || item.sent_at || item.created_at || new Date().toISOString(),
+        sent_timestamp: item.sent_timestamp || item.sent_at || item.created_at || new Date().toISOString(),
         patient_name: item.patient?.name,
+        uhid: item.patient?.uhid,
       }));
+      return mapped.sort((a: any, b: any) => new Date(b.sent_at || 0).getTime() - new Date(a.sent_at || 0).getTime());
     }
   }
 
-  return mockNotificationLogs.slice(0, limit).map((l) => {
+  let list = [...mockNotificationLogs];
+  if (stentId) list = list.filter((l) => l.stent_id === stentId);
+  return list.slice(0, limit).map((l) => {
     const pat = mockPatients.find((p) => p.id === l.patient_id);
     return {
       ...l,
       patient_name: pat?.name,
+      uhid: pat?.uhid,
     };
   });
 }

@@ -179,8 +179,8 @@ export default function CallLogModal({ stent, isOpen, onClose, onSuccess }: Call
           </form>
 
           {/* Past Call History */}
-          <div className="border-t border-slate-200 pt-5">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+          <div className="border-t border-slate-200 dark:border-slate-800 pt-5">
+            <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
               <Clock className="w-4 h-4 text-slate-500" />
               <span>Previous Call Logs ({history.length})</span>
             </h4>
@@ -192,13 +192,18 @@ export default function CallLogModal({ stent, isOpen, onClose, onSuccess }: Call
             ) : (
               <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
                 {history.map((log) => (
-                  <div key={log.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+                  <div key={log.id} className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-1">
                     <div className="flex items-center justify-between font-semibold">
-                      <span className="text-sky-800 bg-sky-100/60 px-2 py-0.5 rounded">{log.outcome}</span>
-                      <span className="text-slate-500">{new Date(log.created_at).toLocaleString()}</span>
+                      <span className="text-sky-800 dark:text-sky-300 bg-sky-100/80 dark:bg-sky-950 px-2 py-0.5 rounded font-bold">{log.outcome}</span>
+                      <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                        {new Date(log.call_timestamp || log.created_at || "").toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </span>
                     </div>
-                    {log.notes && <p className="text-slate-700 mt-1">{log.notes}</p>}
-                    <p className="text-[11px] text-slate-400">By: {log.logged_by}</p>
+                    {log.notes && <p className="text-slate-700 dark:text-slate-300 mt-1">{log.notes}</p>}
+                    <p className="text-[11px] text-slate-400">By: {log.logged_by || "Staff"}</p>
                   </div>
                 ))}
               </div>

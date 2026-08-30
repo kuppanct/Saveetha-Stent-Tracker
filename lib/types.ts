@@ -128,6 +128,7 @@ export interface CallLog {
   outcome: CallOutcome;
   notes?: string;
   logged_by: string;
+  call_timestamp?: string;
   created_at: string;
   patient_name?: string;
   uhid?: string;
@@ -141,9 +142,12 @@ export interface NotificationLog {
   recipient_phone: string;
   message_body: string;
   status: "SENT" | "FAILED" | "PENDING";
+  delivery_status?: "SENT" | "FAILED" | "QUEUED" | "PENDING";
   sent_at: string;
+  sent_timestamp?: string;
   error_message?: string;
   patient_name?: string;
+  uhid?: string;
 }
 
 export interface StentRegistrationInput {

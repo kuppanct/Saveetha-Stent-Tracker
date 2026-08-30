@@ -65,11 +65,13 @@ export default function WhatsAppCenterPage() {
   const fetchLogs = useCallback(async () => {
     try {
       setLogsLoading(true);
-      // fetch recent logs via local fallback or DB
-      const res = await fetch("/api/cron/trigger");
-      // Logs are also available
+      const res = await fetch("/api/notification-logs?limit=50");
+      if (res.ok) {
+        const data = await res.json();
+        setLogs(Array.isArray(data) ? data : []);
+      }
     } catch (e) {
-      // quiet
+      console.error("Failed to fetch notification logs:", e);
     } finally {
       setLogsLoading(false);
     }
@@ -77,9 +79,13 @@ export default function WhatsAppCenterPage() {
 
   useEffect(() => {
     fetchStatus();
-    const interval = setInterval(fetchStatus, 5000);
+    fetchLogs();
+    const interval = setInterval(() => {
+      fetchStatus();
+      fetchLogs();
+    }, 8000);
     return () => clearInterval(interval);
-  }, [fetchStatus]);
+  }, [fetchStatus, fetchLogs]);
 
   const { fullMessage, englishPart, regionalPart } = buildBilingualMessage(
     templateType,
@@ -411,6 +417,94 @@ export default function WhatsAppCenterPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        {/* Global Outreach & Delivery Audit Log */}
+        <div className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                <Clock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                  WhatsApp Outreach & Audit Log
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Real-time record of all automated milestones and manual patient alerts
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={fetchLogs}
+              disabled={logsLoading}
+              className="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-300 transition"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin" : ""}`} />
+              <span>Refresh Log</span>
+            </button>
+          </div>
+
+          {logsLoading && logs.length === 0 ? (
+            <div className="py-12 flex flex-col items-center justify-center space-y-2 text-slate-400">
+              <RefreshCw className="w-6 h-6 animate-spin text-emerald-600" />
+              <p className="text-xs font-semibold">Loading notification audit logs...</p>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="py-10 text-center text-slate-400 text-xs italic">
+              No WhatsApp notifications recorded yet. Automated alerts will appear here as daily checks run.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-500 uppercase tracking-wider bg-slate-50/50 dark:bg-slate-900/50">
+                    <th className="py-3 px-3">Date & Time</th>
+                    <th className="py-3 px-3">Patient / UHID</th>
+                    <th className="py-3 px-3">Phone</th>
+                    <th className="py-3 px-3">Milestone / Trigger</th>
+                    <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3">Message Snippet</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {logs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                      <td className="py-3 px-3 whitespace-nowrap text-slate-600 dark:text-slate-300">
+                        {new Date(log.sent_at || log.sent_timestamp || "").toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-slate-900 dark:text-white">
+                        {log.patient_name || "Patient"}
+                      </td>
+                      <td className="py-3 px-3 font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                        {log.recipient_phone}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 font-bold px-2 py-0.5 rounded text-[11px] border border-emerald-200 dark:border-emerald-800">
+                          {log.trigger_type}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                          log.status === "SENT" || log.delivery_status === "SENT"
+                            ? "bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300"
+                            : "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
+                        }`}>
+                          {log.delivery_status || log.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-slate-600 dark:text-slate-300 font-mono text-[11px] max-w-xs truncate">
+                        {log.message_body}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
       </div>
