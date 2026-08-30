@@ -301,7 +301,7 @@ export default function TechnicianQueue() {
                       className="w-full py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-xs flex items-center justify-center space-x-2 shadow-sm transition"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      <span>Send {stent.laterality} WhatsApp Alert</span>
+                      <span>Send {stent.laterality} WhatsApp / SMS</span>
                     </button>                    <div className="flex items-center space-x-1.5 pt-1">
                       <button
                         onClick={() => {
