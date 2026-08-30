@@ -84,12 +84,12 @@ export default function TechnicianQueue() {
     fetchQueue();
   }, [fetchQueue]);
 
-  // Determine if a stent has been contacted within the last 24 hours
+  // Determine if a stent has been contacted within the last 7 days (1 week)
   const getCallStatus = (stentId: string) => {
-    if (manuallyRequeued[stentId]) return { contactedToday: false, latestLog: null };
+    if (manuallyRequeued[stentId]) return { contactedToday: false, latestLog: null, daysSinceCall: 0 };
 
     const stentLogs = callLogs.filter((c) => c.stent_id === stentId);
-    if (!stentLogs.length) return { contactedToday: false, latestLog: null };
+    if (!stentLogs.length) return { contactedToday: false, latestLog: null, daysSinceCall: 0 };
 
     const latest = stentLogs.sort(
       (a, b) => new Date(b.call_timestamp || b.created_at || 0).getTime() - new Date(a.call_timestamp || a.created_at || 0).getTime()
@@ -98,13 +98,14 @@ export default function TechnicianQueue() {
     const callTime = new Date(latest.call_timestamp || latest.created_at || 0).getTime();
     const now = new Date().getTime();
     const hoursSinceCall = (now - callTime) / (1000 * 60 * 60);
+    const daysSinceCall = hoursSinceCall / 24;
 
-    // If called within the last 24 hours, move to contacted list
-    if (hoursSinceCall < 24) {
-      return { contactedToday: true, latestLog: latest, hoursSinceCall };
+    // If called within the last 7 days (1 week), keep in contacted follow-up list
+    if (daysSinceCall < 7) {
+      return { contactedToday: true, latestLog: latest, daysSinceCall, hoursSinceCall };
     }
 
-    return { contactedToday: false, latestLog: latest, hoursSinceCall };
+    return { contactedToday: false, latestLog: latest, daysSinceCall, hoursSinceCall };
   };
 
   const handleOutcomeChange = (stentId: string, outcome: CallOutcome) => {
@@ -435,21 +436,26 @@ export default function TechnicianQueue() {
                           {callStatus.latestLog.notes || "Call completed."}
                         </p>
 
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-1">
-                          <span className="flex items-center space-x-1">
-                            <Clock3 className="w-3.5 h-3.5 text-slate-400" />
-                            <span>
-                              Called: {new Date(callStatus.latestLog.call_timestamp || callStatus.latestLog.created_at || "").toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 gap-2">
+                          <div className="space-y-0.5">
+                            <span className="flex items-center space-x-1 font-semibold text-slate-700 dark:text-slate-300">
+                              <Clock3 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>
+                                Contacted: {format(parseISO(callStatus.latestLog.call_timestamp || callStatus.latestLog.created_at || new Date().toISOString()), "dd/MM/yyyy, hh:mm a")}
+                              </span>
                             </span>
-                          </span>
+                            <p className="text-[10px] text-slate-400">
+                              Auto re-remind in {Math.max(1, 7 - Math.floor(callStatus.daysSinceCall || 0))} day(s) if stent not removed
+                            </p>
+                          </div>
 
                           <button
                             type="button"
                             onClick={() => handleRequeue(stent.id)}
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1"
+                            className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold transition flex items-center space-x-1 self-start sm:self-auto"
                             title="Re-open to Pending Calls Queue"
                           >
-                            <RotateCcw className="w-3 h-3 text-slate-600" />
+                            <RotateCcw className="w-3 h-3 text-slate-600 dark:text-slate-400" />
                             <span>Re-call Now</span>
                           </button>
                         </div>

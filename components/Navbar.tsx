@@ -72,7 +72,7 @@ export default function Navbar() {
     },
     { 
       href: "/whatsapp-center", 
-      label: "WhatsApp", 
+      label: "Outreach Center", 
       icon: MessageSquare,
       statusDot: waConnected ? "bg-emerald-400" : "bg-amber-400"
     },

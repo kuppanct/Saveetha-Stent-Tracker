@@ -140,10 +140,10 @@ export default function WhatsAppCenterPage() {
       </div>
 
       {/* Active Channel Overview Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         
         {/* Channel 1: WhatsApp */}
-        <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
@@ -164,7 +164,7 @@ export default function WhatsAppCenterPage() {
         </div>
 
         {/* Channel 2: Regular SMS */}
-        <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
@@ -185,7 +185,7 @@ export default function WhatsAppCenterPage() {
         </div>
 
         {/* Channel 3: Phone Calls */}
-        <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+        <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <span className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-400">
@@ -202,31 +202,6 @@ export default function WhatsAppCenterPage() {
           </p>
           <div className="pt-1 text-xs font-bold text-purple-700 dark:text-purple-400">
             {totalCalls} Calls Logged
-          </div>
-        </div>
-
-        {/* Channel 4: OPD Schedule Integration */}
-        <div className="bg-white dark:bg-[#111827] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
-                <Calendar className="w-4 h-4" />
-              </span>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">OPD Schedule</h3>
-            </div>
-            <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-              UNIT DAYS
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-1.5 text-[11px] pt-1">
-            <div className="p-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="font-bold text-slate-800 dark:text-slate-200">Unit 1</p>
-              <p className="text-indigo-600 dark:text-indigo-400 font-semibold">Mon & Wed</p>
-            </div>
-            <div className="p-1.5 bg-slate-50 dark:bg-slate-800/60 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="font-bold text-slate-800 dark:text-slate-200">Unit 2</p>
-              <p className="text-indigo-600 dark:text-indigo-400 font-semibold">Tue & Thu</p>
-            </div>
           </div>
         </div>
 
