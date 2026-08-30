@@ -131,6 +131,7 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
     } catch {}
   };
 
+  const waDirectUrl = `https://wa.me/91${stent.patient?.phone?.replace(/\D/g, "")}?text=${encodeURIComponent(fullMessage)}`;
   const smsDirectUrl = `sms:+91${stent.patient?.phone?.replace(/\D/g, "")}?&body=${encodeURIComponent(fullMessage)}`;
 
   return (
