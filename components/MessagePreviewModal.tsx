@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Stent, SecondLanguage, NotificationLog } from "@/lib/types";
 import { MessageSquare, X, Send, Copy, Check, ExternalLink, Clock, CheckCircle2, AlertCircle } from "lucide-react";
-import { buildBilingualMessage, TemplateType } from "@/lib/message-templates";
+import { buildBilingualMessage, TemplateType, formatDateForDisplay } from "@/lib/message-templates";
 
 interface MessagePreviewModalProps {
   stent: Stent | null;
