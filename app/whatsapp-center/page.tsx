@@ -147,107 +147,94 @@ export default function WhatsAppCenterPage() {
               <MessageSquare className="w-5 h-5" />
             </span>
             <h1 className="text-2xl font-black tracking-tight text-slate-900">
-              WhatsApp Messaging Gateway Control
+              Patient Outreach Center (WhatsApp & Regular SMS)
             </h1>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Zero-cost automated WhatsApp communication hub with bilingual engine (English + Tamil / Hindi).
+            Multi-channel patient outreach with bilingual messaging (English + Tamil / Hindi) and complete audit logging.
           </p>
         </div>
 
         <button
-          onClick={fetchStatus}
+          onClick={fetchLogs}
           className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loadingStatus ? "animate-spin" : ""}`} />
-          <span>Refresh Status</span>
+          <RefreshCw className={`w-3.5 h-3.5 ${logsLoading ? "animate-spin" : ""}`} />
+          <span>Refresh Audit Logs</span>
         </button>
       </div>
 
-      {/* Grid: WhatsApp Connection Manager & Template Sandbox */}
+      {/* Grid: Outreach Architecture & Template Sandbox */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left: WhatsApp Web Live Connection Status & QR Code (5 Cols) */}
+        {/* Left: Active Outreach Channels & Operational Architecture (5 Cols) */}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
-                <Smartphone className="w-4 h-4 text-emerald-600" />
-                <span>Gateway Session Status</span>
-              </h3>
-              
-              {waStatus.status === "READY" ? (
-                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Client Connected</span>
-                </span>
-              ) : waStatus.status === "QR_READY" ? (
-                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-                  <span>Scan QR Code</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 border border-slate-300">
-                  <span>Daemon Standby</span>
-                </span>
-              )}
-            </div>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
+              <Smartphone className="w-4 h-4 text-emerald-600" />
+              <span>Active Outreach Channels</span>
+            </h3>
 
-            {/* QR Code Container */}
-            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200 text-center flex flex-col items-center justify-center min-h-[260px]">
-              {waStatus.status === "READY" ? (
-                <div className="space-y-2">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-                    <CheckCircle2 className="w-8 h-8" />
-                  </div>
-                  <h4 className="text-base font-bold text-slate-900">WhatsApp Gateway Active</h4>
-                  <p className="text-xs text-slate-500">
-                    Connected Number: <strong className="text-slate-800">+{waStatus.connectedPhone || "Hospital Device"}</strong>
-                  </p>
-                  <p className="text-[11px] text-emerald-700 bg-emerald-50 p-2 rounded-lg border border-emerald-200">
-                    Automated reminders and technician triggers will dispatch directly from this phone.
-                  </p>
-                </div>
-              ) : waStatus.qrCodeDataUrl ? (
-                <div className="space-y-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={waStatus.qrCodeDataUrl}
-                    alt="WhatsApp QR Code"
-                    className="w-48 h-48 mx-auto border-4 border-white rounded-xl shadow-md"
-                  />
-                  <p className="text-xs font-bold text-slate-800">
-                    Scan with WhatsApp on Department Phone
-                  </p>
-                  <p className="text-[11px] text-slate-500">
-                    Open WhatsApp &gt; Linked Devices &gt; Link a Device
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center mx-auto">
-                    <QrCode className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-700">Gateway Service Ready</h4>
-                  <p className="text-xs text-slate-500 max-w-xs">
-                    To connect your hospital WhatsApp device for 100% free automated messaging, run the local daemon command:
-                  </p>
-                  <div className="bg-slate-900 text-slate-200 p-2.5 rounded-xl font-mono text-xs text-left">
-                    <code>npm run whatsapp-service</code>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Quick Setup Instructions */}
-            <div className="bg-sky-50 rounded-xl p-3.5 border border-sky-200 text-xs space-y-1.5 text-sky-900">
-              <p className="font-bold flex items-center space-x-1.5">
-                <Terminal className="w-4 h-4 text-sky-700" />
-                <span>Zero-Cost WhatsApp Architecture</span>
+            {/* Channel 1: WhatsApp */}
+            <div className="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-900 flex items-center space-x-1.5">
+                  <span>💬 WhatsApp Web / App</span>
+                </span>
+                <span className="text-[10px] font-extrabold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                  READY
+                </span>
+              </div>
+              <p className="text-[11px] text-emerald-800">
+                1-tap direct dispatch from technician/resident device. Pre-filled with Unit OPD days & Saveetha helpline.
               </p>
+            </div>
+
+            {/* Channel 2: SMS */}
+            <div className="p-3.5 bg-sky-50/60 rounded-xl border border-sky-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-sky-900 flex items-center space-x-1.5">
+                  <span>📱 Regular SMS Messenger</span>
+                </span>
+                <span className="text-[10px] font-extrabold bg-sky-100 text-sky-800 px-2 py-0.5 rounded-full">
+                  READY
+                </span>
+              </div>
               <p className="text-[11px] text-sky-800">
-                Uses local WhatsApp Web session automation (<code>whatsapp-web.js</code>). No Meta Business API fees, no third-party SMS costs.
+                Native SMS backup for patients who do not use WhatsApp or claim message non-receipt.
               </p>
+            </div>
+
+            {/* Channel 3: Proof of Contact Audit */}
+            <div className="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-200 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 flex items-center space-x-1.5">
+                  <span>🛡️ Legal & NABH Audit Trail</span>
+                </span>
+                <span className="text-[10px] font-extrabold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                  AUTO-LOGGED
+                </span>
+              </div>
+              <p className="text-[11px] text-indigo-800">
+                Every WhatsApp and SMS dispatch is recorded with timestamp, recipient UHID, phone, and payload.
+              </p>
+            </div>
+
+            {/* Unit Schedule Quick Reference */}
+            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+              <span className="font-bold text-slate-700 uppercase tracking-wider text-[10px]">
+                OPD Schedule Integration
+              </span>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2 bg-white rounded-lg border border-slate-200">
+                  <p className="font-bold text-slate-800">Unit 1 (Prof. N. Muthulatha)</p>
+                  <p className="text-indigo-600 font-semibold">Monday & Wednesday</p>
+                </div>
+                <div className="p-2 bg-white rounded-lg border border-slate-200">
+                  <p className="font-bold text-slate-800">Unit 2 (Prof. M. Siva Sankar)</p>
+                  <p className="text-indigo-600 font-semibold">Tuesday & Thursday</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
