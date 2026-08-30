@@ -43,9 +43,7 @@ const client = new Client({
       "--disable-dev-shm-usage",
       "--disable-accelerated-2d-canvas",
       "--no-first-run",
-      "--no-zygote",
       "--disable-gpu",
-      "--single-process",
       "--disable-extensions",
       "--disable-component-update",
       "--disable-default-apps",
@@ -53,10 +51,26 @@ const client = new Client({
       "--hide-scrollbars",
       "--disable-background-timer-throttling",
       "--disable-renderer-backgrounding",
-      "--js-flags=--max-old-space-size=256",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-breakpad",
+      "--disable-software-rasterizer",
+      "--disable-notifications",
+      "--disable-canvas-aa",
+      "--disable-2d-canvas-clip-aa",
+      "--disable-gl-drawing-for-tests",
+      "--js-flags=--max-old-space-size=150",
     ],
   },
 });
+
+// Periodic memory cleanup to prevent Render free-tier OOM spikes
+setInterval(() => {
+  if (global.gc) {
+    try {
+      global.gc();
+    } catch {}
+  }
+}, 30000);
 
 client.on("qr", async (qr) => {
   console.log("\n📲 [WHATSAPP] Scan this QR Code with your Hospital/Department WhatsApp:\n");

@@ -27,4 +27,4 @@ COPY .env.example .env.local
 
 EXPOSE 3001
 
-CMD ["node", "scripts/whatsapp-daemon.js"]
+CMD ["node", "--max-old-space-size=150", "--expose-gc", "scripts/whatsapp-daemon.js"]
