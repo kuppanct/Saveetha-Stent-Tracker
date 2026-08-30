@@ -69,7 +69,7 @@ export default function WhatsAppCenterPage() {
       const isSms = (n.trigger_type || "").includes("SMS");
       return {
         id: `notif-${n.id}`,
-        timestamp: n.sent_at || n.sent_timestamp || n.created_at || "",
+        timestamp: n.sent_at || n.sent_timestamp || "",
         channel: isSms ? ("SMS" as const) : ("WHATSAPP" as const),
         patient_name: n.patient_name || "Patient",
         uhid: n.uhid || "",
