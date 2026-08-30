@@ -11,11 +11,22 @@ interface MessagePreviewModalProps {
   onClose: () => void;
 }
 
+function getDaysRemaining(dateStr: string): number {
+  try {
+    const planned = new Date(dateStr);
+    const now = new Date();
+    planned.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diffTime = planned.getTime() - now.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  } catch {
+    return 0;
+  }
+}
+
 export default function MessagePreviewModal({ stent, isOpen, onClose }: MessagePreviewModalProps) {
-  const [templateType, setTemplateType] = useState<TemplateType>("DUE_TODAY");
   const [selectedLang, setSelectedLang] = useState<SecondLanguage>("Tamil");
   const [copied, setCopied] = useState(false);
-  const [sending, setSending] = useState(false);
   const [sendSuccess, setSendSuccess] = useState<string | null>(null);
   const [history, setHistory] = useState<NotificationLog[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -45,6 +56,48 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
 
   if (!isOpen || !stent) return null;
 
+  // Auto-detect the exact clinical stage so technicians NEVER send the wrong template
+  const getStageInfo = () => {
+    if (stent.status === "Removed" || stent.status === "Exchanged") {
+      return {
+        type: "REMOVED" as TemplateType,
+        label: "✅ Post-Removal / Exchange Advice",
+        color: "bg-emerald-50 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300",
+        description: "Stent procedure completed. Sending recovery guidance.",
+      };
+    }
+
+    const days = stent.days_remaining !== undefined ? stent.days_remaining : getDaysRemaining(stent.planned_removal_date);
+
+    if (days < 0) {
+      const absDays = Math.abs(days);
+      return {
+        type: "OVERDUE" as TemplateType,
+        label: `🚨 Overdue Stent Alert (${absDays} Days Overdue)`,
+        color: "bg-rose-50 text-rose-900 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300",
+        description: "CRITICAL: Patient has passed planned removal date. Sending legal & medical risk warning.",
+      };
+    }
+
+    if (days === 0) {
+      return {
+        type: "DUE_TODAY" as TemplateType,
+        label: "⏰ Due Today (T-0) Removal Reminder",
+        color: "bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300",
+        description: "Patient's stent removal is scheduled for TODAY.",
+      };
+    }
+
+    return {
+      type: "PRE_EXPIRY" as TemplateType,
+      label: `📅 Upcoming Stent Reminder (${days} Days Remaining)`,
+      color: "bg-sky-50 text-sky-900 border-sky-300 dark:bg-sky-950/60 dark:text-sky-300",
+      description: `Stent is currently in-situ. Scheduled for removal on ${formatDateForDisplay(stent.planned_removal_date)}.`,
+    };
+  };
+
+  const stage = getStageInfo();
+  const templateType = stage.type;
   const currentLang = stent.patient?.second_language || selectedLang;
 
   const { englishPart, regionalPart, fullMessage } = buildBilingualMessage(
@@ -62,37 +115,6 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
     navigator.clipboard.writeText(fullMessage);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleSendWhatsApp = async () => {
-    if (!stent.patient?.phone) return;
-    setSending(true);
-    setSendSuccess(null);
-    try {
-      const res = await fetch("/api/whatsapp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phone: stent.patient.phone,
-          message: fullMessage,
-          stent_id: stent.id,
-          patient_id: stent.patient_id,
-          trigger_type: templateType,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSendSuccess("WhatsApp message dispatched successfully!");
-        fetchHistory();
-      } else {
-        setSendSuccess(data.message || data.error || "Logged to notification records.");
-        fetchHistory();
-      }
-    } catch (e: any) {
-      setSendSuccess("Error contacting messaging service");
-    } finally {
-      setSending(false);
-    }
   };
 
   const handleDirectWebClick = async () => {
@@ -160,36 +182,23 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
         </div>
 
         <div className="p-6 overflow-y-auto space-y-5 flex-1">
-          {/* Template Selector */}
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-              Select Message Category
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {[
-                { type: "PRE_EXPIRY", label: "1. Pre-Expiry (T-30/14)" },
-                { type: "DUE_TODAY", label: "2. Due Today (T-0)" },
-                { type: "OVERDUE", label: "3. Overdue Alert" },
-                { type: "REMOVED", label: "4. Removal Confirmed" },
-              ].map((t) => (
-                <button
-                  type="button"
-                  key={t.type}
-                  onClick={() => setTemplateType(t.type as TemplateType)}
-                  className={`py-2 px-2.5 rounded-xl text-xs font-bold border transition text-center ${
-                    templateType === t.type
-                      ? "bg-emerald-700 text-white border-emerald-700 shadow-sm"
-                      : "bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
-                  }`}
-                >
-                  {t.label}
-                </button>
-              ))}
+          {/* Smart Clinical Stage Detection (Locked to prevent incorrect message selection) */}
+          <div className={`p-4 rounded-2xl border ${stage.color} space-y-1`}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black uppercase tracking-wider">
+                Targeted Clinical Message
+              </span>
+              <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/80 dark:bg-slate-900/80 shadow-xs">
+                {stage.label}
+              </span>
             </div>
+            <p className="text-xs font-medium opacity-90">
+              {stage.description}
+            </p>
           </div>
 
           {/* Bilingual Message Preview Box */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                 Live Generated Bilingual Payload
