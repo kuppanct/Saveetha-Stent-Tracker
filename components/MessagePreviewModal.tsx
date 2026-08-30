@@ -107,6 +107,7 @@ export default function MessagePreviewModal({ stent, isOpen, onClose }: MessageP
       laterality: stent.laterality,
       insertionDate: stent.insertion_date,
       dueDate: stent.planned_removal_date,
+      unit: stent.unit,
     },
     currentLang
   );

@@ -34,6 +34,7 @@ export default function WhatsAppCenterPage() {
   // Template Sandbox State
   const [templateType, setTemplateType] = useState<TemplateType>("DUE_TODAY");
   const [language, setLanguage] = useState<SecondLanguage>("Tamil");
+  const [unit, setUnit] = useState<"Unit 1" | "Unit 2">("Unit 1");
   const [patientName, setPatientName] = useState("Kavitha Murugan");
   const [laterality, setLaterality] = useState<Laterality>("Right");
   const [insertionDate, setInsertionDate] = useState("2026-05-30");
@@ -94,6 +95,7 @@ export default function WhatsAppCenterPage() {
       laterality,
       insertionDate,
       dueDate,
+      unit,
     },
     language
   );
@@ -311,6 +313,30 @@ export default function WhatsAppCenterPage() {
                   <option value="Left">Left</option>
                   <option value="Bilateral">Bilateral</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-600 mb-1">Unit & OP Schedule</label>
+                <div className="flex space-x-1">
+                  <button
+                    type="button"
+                    onClick={() => setUnit("Unit 1")}
+                    className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition ${
+                      unit === "Unit 1" ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border"
+                    }`}
+                  >
+                    Unit 1 (Mon/Wed)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUnit("Unit 2")}
+                    className={`flex-1 py-1.5 rounded-lg font-bold text-xs transition ${
+                      unit === "Unit 2" ? "bg-indigo-600 text-white" : "bg-white text-slate-700 border"
+                    }`}
+                  >
+                    Unit 2 (Tue/Thu)
+                  </button>
+                </div>
               </div>
 
               <div>
