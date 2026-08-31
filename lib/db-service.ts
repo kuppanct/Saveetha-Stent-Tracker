@@ -537,6 +537,9 @@ export async function registerPatientAndStent(
       throw new Error(`Failed to save patient: ${pError?.message}`);
     }
 
+    const stentStatus = input.status || "Active";
+    const removalDate = stentStatus === "Removed" ? (input.actual_removal_date || new Date().toISOString().split("T")[0]) : null;
+
     const { data: stentData, error: sError } = await supabase
       .from("stents")
       .insert({
@@ -546,7 +549,9 @@ export async function registerPatientAndStent(
         material: input.material,
         insertion_date: input.insertion_date,
         planned_removal_date: plannedRemoval,
-        status: "Active",
+        status: stentStatus,
+        removal_date: removalDate,
+        actual_removal_date: removalDate,
         residual_stone: input.residual_stone,
         inserted_by: input.inserted_by.trim(),
         notes: input.notes?.trim() || null,
@@ -584,6 +589,9 @@ export async function registerPatientAndStent(
     patient.second_language = input.second_language;
   }
 
+  const stentStatus = input.status || "Active";
+  const removalDate = stentStatus === "Removed" ? (input.actual_removal_date || new Date().toISOString().split("T")[0]) : null;
+
   const newStent: Stent = {
     id: `s-${Date.now()}`,
     patient_id: patient.id,
@@ -592,7 +600,9 @@ export async function registerPatientAndStent(
     material: input.material,
     insertion_date: input.insertion_date,
     planned_removal_date: plannedRemoval,
-    status: "Active",
+    status: stentStatus,
+    removal_date: removalDate,
+    actual_removal_date: removalDate,
     residual_stone: input.residual_stone,
     inserted_by: input.inserted_by.trim(),
     notes: input.notes?.trim() || null,

@@ -27,6 +27,7 @@ import {
   WifiOff
 } from "lucide-react";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import { createWorker } from "tesseract.js";
 import { ParsedStentEntry } from "@/lib/text-parser";
 import { useRouter } from "next/navigation";
@@ -300,22 +301,41 @@ export default function IngestionHubPage() {
   };
 
   // ==========================================
-  // CHANNEL 4: CSV BULK BACKLOG UPLOADER
+  // CHANNEL 4: EXCEL / CSV BULK BACKLOG UPLOADER
   // ==========================================
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<any[]>([]);
   const [csvImporting, setCsvImporting] = useState(false);
   const [csvResult, setCsvResult] = useState<any>(null);
 
-  const handleCsvFileChange = (file: File) => {
+  const handleFileUpload = (file: File) => {
     setCsvFile(file);
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        setCsvPreview(results.data);
-      },
-    });
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: "array" });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, { raw: false, defval: "" });
+          setCsvPreview(json);
+        } catch (err: any) {
+          alert("Failed to parse Excel file: " + err.message);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          setCsvPreview(results.data);
+        },
+      });
+    }
   };
 
   const handleBulkImport = async () => {
@@ -337,8 +357,15 @@ export default function IngestionHubPage() {
     }
   };
 
+  const downloadSampleXlsx = () => {
+    const a = document.createElement("a");
+    a.href = "/saveetha_stent_backlog_master_template.xlsx";
+    a.download = "saveetha_stent_backlog_master_template.xlsx";
+    a.click();
+  };
+
   const downloadSampleCsv = () => {
-    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Second Language,Insertion Date,Planned Removal Date,Residual Stone,Surgeon,Notes\n260826056037,Kumar K,9840123456,Right,Carbothane,Unit 1,Tamil,2026-08-20,,No,Prof. N. Muthulatha,Right URSL Done\n260826055322,Anitha S,9566144061,Left,Carbothane,Unit 1,Tamil,2026-08-15,,No,Prof. N. Muthulatha,Left PCNL\n260826054110,Rajesh Verma,9876543210,Bilateral,Carbothane,Unit 2,Hindi,2026-08-10,,Yes,Prof. M. Siva Sankar,Bilateral RIRS for calculi\n260826053221,Govindaraj M,9444112233,Right,Regular,Unit 1,Tamil,2026-07-25,,No,Prof. N. Muthulatha,PU Stent 90 days\n260826052199,Priya Dharshini,9888776655,Left,Silicone,Unit 2,Tamil,2026-06-01,,No,Prof. M. Siva Sankar,Long term silicone stent";
+    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Second Language,Status,Insertion Date,Planned Removal Date,Actual Removal Date,Residual Stone,Surgeon,Notes\n260826056037,Kumar K,9840123456,Right,Carbothane,Unit 1,Tamil,Active,2026-08-20,,,No,Prof. N. Muthulatha,Right URSL Done\n260826055322,Anitha S,9566144061,Left,Carbothane,Unit 1,Tamil,Active,2026-08-15,,,No,Prof. N. Muthulatha,Left PCNL\n260826054110,Rajesh Verma,9876543210,Bilateral,Carbothane,Unit 2,Hindi,Active,2026-08-10,,,Yes,Prof. M. Siva Sankar,Bilateral RIRS for calculi\n260826053221,Govindaraj M,9444112233,Right,Regular,Unit 1,Tamil,Removed,2025-11-10,2026-02-10,2026-02-08,No,Prof. N. Muthulatha,Historical case - Removed\n260826052199,Priya Dharshini,9888776655,Left,Silicone,Unit 2,Tamil,Active,2026-06-01,,,No,Prof. M. Siva Sankar,Long term silicone stent";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -1125,43 +1152,58 @@ export default function IngestionHubPage() {
       )}
 
       {/* =========================================================================
-          CHANNEL 4: CSV / EXCEL BULK BACKLOG UPLOADER
+          CHANNEL 4: EXCEL (.XLSX) / CSV BULK BACKLOG UPLOADER
           ========================================================================= */}
       {activeTab === "CSV" && (
         <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-[#1f293d] shadow-sm p-6 sm:p-8 space-y-6 animate-fadeIn">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
-                <FileSpreadsheet className="w-5 h-5 text-amber-600" />
-                <span>CSV / Excel Bulk Backlog Uploader</span>
+                <FileSpreadsheet className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span>Excel (.xlsx) & CSV Bulk Backlog Uploader</span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Import historical or backlog stent records in bulk with automated date parsing and deduplication checking.
+                Upload 2+ years of historical or backlog cases with automated date parsing, dropdown compatibility, and duplicate protection.
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={downloadSampleCsv}
-              className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-amber-50 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-900 dark:text-amber-200 text-xs font-bold rounded-xl border border-amber-200 dark:border-amber-800 transition"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download Template</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <button
+                type="button"
+                onClick={downloadSampleXlsx}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition"
+                title="Download formatted Excel template with pre-built dropdown menus"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Excel (.xlsx) with Dropdowns</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={downloadSampleCsv}
+                className="inline-flex items-center space-x-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 transition"
+                title="Download plain text CSV template"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>CSV Template</span>
+              </button>
+            </div>
           </div>
 
           {/* File Selector */}
-          <div className="border-2 border-dashed border-amber-300 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/20 rounded-2xl p-6 text-center">
-            <Upload className="w-8 h-8 text-amber-600 mx-auto mb-2" />
-            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Select or Drag CSV File Here</p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Columns: UHID, Patient Name, Phone, Laterality, Material, Insertion Date, Residual Stone</p>
+          <div className="border-2 border-dashed border-emerald-300 dark:border-emerald-800 bg-emerald-50/20 dark:bg-emerald-950/20 rounded-2xl p-6 text-center">
+            <Upload className="w-8 h-8 text-emerald-600 dark:text-emerald-400 mx-auto mb-2" />
+            <p className="text-xs font-bold text-slate-800 dark:text-slate-200">Select or Drag Excel (.xlsx / .xls) or CSV File Here</p>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Supports: UHID, Name, Phone, Laterality, Material, Unit, Language, Status (Active/Removed), Dates, Residual Stone, Surgeon, Notes
+            </p>
             <input
               type="file"
-              accept=".csv"
+              accept=".xlsx,.xls,.csv"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleCsvFileChange(e.target.files[0]);
+                if (e.target.files?.[0]) handleFileUpload(e.target.files[0]);
               }}
-              className="mt-3 text-xs text-slate-600 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-600 file:text-white hover:file:bg-amber-700 cursor-pointer"
+              className="mt-3 text-xs text-slate-600 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-600 file:text-white hover:file:bg-emerald-700 cursor-pointer"
             />
           </div>
 
@@ -1177,34 +1219,46 @@ export default function IngestionHubPage() {
                   type="button"
                   onClick={handleBulkImport}
                   disabled={csvImporting}
-                  className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold shadow-sm transition disabled:opacity-50 flex items-center space-x-1.5"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition disabled:opacity-50 flex items-center space-x-1.5"
                 >
                   <Upload className="w-4 h-4" />
-                  <span>{csvImporting ? "Importing..." : `Commit ${csvPreview.length} Records`}</span>
+                  <span>{csvImporting ? "Importing..." : `Commit & Register ${csvPreview.length} Records`}</span>
                 </button>
               </div>
 
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto max-h-60">
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto max-h-64">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold sticky top-0">
                     <tr>
                       <th className="p-2.5">UHID</th>
-                      <th className="p-2.5">Name</th>
+                      <th className="p-2.5">Patient Name</th>
                       <th className="p-2.5">Phone</th>
                       <th className="p-2.5">Side</th>
                       <th className="p-2.5">Material</th>
-                      <th className="p-2.5">Date</th>
+                      <th className="p-2.5">Status</th>
+                      <th className="p-2.5">Insertion Date</th>
+                      <th className="p-2.5">Surgeon</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {csvPreview.map((row, idx) => (
                       <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                        <td className="p-2.5 font-bold">{row.UHID || row.uhid || "N/A"}</td>
-                        <td className="p-2.5">{row["Patient Name"] || row.name || "N/A"}</td>
-                        <td className="p-2.5">{row.Phone || row.phone || "N/A"}</td>
+                        <td className="p-2.5 font-bold font-mono">{row.UHID || row.uhid || "N/A"}</td>
+                        <td className="p-2.5 font-semibold">{row["Patient Name"] || row.name || "N/A"}</td>
+                        <td className="p-2.5 font-mono">{row.Phone || row.phone || "N/A"}</td>
                         <td className="p-2.5">{row.Laterality || row.laterality || "Right"}</td>
-                        <td className="p-2.5">{row.Material || row.material || "Regular"}</td>
+                        <td className="p-2.5">{row.Material || row.material || "Carbothane"}</td>
+                        <td className="p-2.5">
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            String(row.Status || row.status || "Active").toLowerCase().includes("remov")
+                              ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                              : "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
+                          }`}>
+                            {row.Status || row.status || "Active"}
+                          </span>
+                        </td>
                         <td className="p-2.5">{row["Insertion Date"] || row.insertion_date || "N/A"}</td>
+                        <td className="p-2.5 text-slate-600 dark:text-slate-400">{row.Surgeon || row.surgeon || "Department"}</td>
                       </tr>
                     ))}
                   </tbody>

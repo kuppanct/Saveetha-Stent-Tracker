@@ -161,6 +161,8 @@ export interface StentRegistrationInput {
   material: StentMaterial;
   insertion_date: string;
   planned_removal_date?: string;
+  actual_removal_date?: string;
+  status?: StentStatus;
   residual_stone: boolean;
   inserted_by: string;
   notes?: string;

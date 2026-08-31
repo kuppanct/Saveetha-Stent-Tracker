@@ -84,6 +84,12 @@ export async function POST(request: NextRequest) {
         const resStoneRaw = String(row.residual_stone || row["Residual Stone"] || row["Stone"] || "").toLowerCase();
         const residual_stone = resStoneRaw === "yes" || resStoneRaw === "true" || resStoneRaw === "1" || resStoneRaw === "y";
 
+        const statusRaw = String(row.status || row.Status || "Active").trim().toLowerCase();
+        const status = statusRaw.includes("remov") ? "Removed" : "Active";
+
+        const rawActualDate = String(row.actual_removal_date || row["Actual Removal Date"] || row["Removal Date"] || "").trim();
+        const actual_removal_date = rawActualDate ? parseFlexibleDate(rawActualDate) : (status === "Removed" ? parseFlexibleDate(rawPlannedDate || rawInsertDate) : undefined);
+
         const defaultDoctor = unit === "Unit 2" ? "Prof. M. Siva Sankar" : "Prof. N. Muthulatha";
         const inserted_by = String(row.inserted_by || row["Surgeon"] || row.Doctor || defaultDoctor).trim();
 
@@ -98,11 +104,14 @@ export async function POST(request: NextRequest) {
 
         // Process each side (expands bilateral into 2 records)
         for (const side of targetSides) {
-          const dup = await checkActiveStentDuplicate(uhid, side as Laterality);
-          if (dup.hasDuplicate) {
-            results.duplicates++;
-            results.errors.push(`Row ${i + 1} (${uhid} - ${side}): Active ${side} stent already exists in registry`);
-            continue;
+          // If status is Active, check for duplicates
+          if (status === "Active") {
+            const dup = await checkActiveStentDuplicate(uhid, side as Laterality);
+            if (dup.hasDuplicate) {
+              results.duplicates++;
+              results.errors.push(`Row ${i + 1} (${uhid} - ${side}): Active ${side} stent already exists in registry`);
+              continue;
+            }
           }
 
           await registerPatientAndStent({
@@ -115,9 +124,11 @@ export async function POST(request: NextRequest) {
             material,
             insertion_date,
             planned_removal_date,
+            actual_removal_date,
+            status,
             residual_stone,
             inserted_by,
-            notes: notes ? `Imported via CSV. ${notes}` : `Imported via CSV Backlog Uploader`,
+            notes: notes ? `Imported via Backlog File. ${notes}` : `Imported via Backlog File`,
           });
 
           results.imported++;
