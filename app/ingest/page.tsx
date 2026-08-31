@@ -338,12 +338,12 @@ export default function IngestionHubPage() {
   };
 
   const downloadSampleCsv = () => {
-    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Insertion Date,Residual Stone,Surgeon\n260826056037,Kumar K,6374989972,Right,Carbothane,Unit 1,2026-08-28,No,Prof. N. Muthulatha\n260826055322,Anitha,9566144061,Left,Carbothane,Unit 1,2026-08-28,No,Prof. N. Muthulatha\nSMCH-2026-00902,Sita Devi,9876554433,Left,Regular,Unit 2,2026-08-15,Yes,Prof. M. Sivasankar";
+    const csvContent = "UHID,Patient Name,Phone,Laterality,Material,Unit,Second Language,Insertion Date,Planned Removal Date,Residual Stone,Surgeon,Notes\n260826056037,Kumar K,9840123456,Right,Carbothane,Unit 1,Tamil,2026-08-20,,No,Prof. N. Muthulatha,Right URSL Done\n260826055322,Anitha S,9566144061,Left,Carbothane,Unit 1,Tamil,2026-08-15,,No,Prof. N. Muthulatha,Left PCNL\n260826054110,Rajesh Verma,9876543210,Bilateral,Carbothane,Unit 2,Hindi,2026-08-10,,Yes,Prof. M. Siva Sankar,Bilateral RIRS for calculi\n260826053221,Govindaraj M,9444112233,Right,Regular,Unit 1,Tamil,2026-07-25,,No,Prof. N. Muthulatha,PU Stent 90 days\n260826052199,Priya Dharshini,9888776655,Left,Silicone,Unit 2,Tamil,2026-06-01,,No,Prof. M. Siva Sankar,Long term silicone stent";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "saveetha_urology_stent_backlog_template.csv";
+    a.download = "saveetha_stent_backlog_master_template.csv";
     a.click();
   };
 
