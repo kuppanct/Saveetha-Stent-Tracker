@@ -540,24 +540,39 @@ export async function registerPatientAndStent(
     const stentStatus = input.status || "Active";
     const removalDate = stentStatus === "Removed" ? (input.actual_removal_date || new Date().toISOString().split("T")[0]) : null;
 
-    const { data: stentData, error: sError } = await supabase
+    const insertPayload: Record<string, any> = {
+      patient_id: patientData.id,
+      unit: input.unit,
+      laterality: input.laterality,
+      material: input.material,
+      insertion_date: input.insertion_date,
+      planned_removal_date: plannedRemoval,
+      status: stentStatus,
+      residual_stone: input.residual_stone,
+      inserted_by: input.inserted_by.trim(),
+      notes: input.notes?.trim() || null,
+    };
+
+    if (removalDate) {
+      insertPayload.actual_removal_date = removalDate;
+    }
+
+    let { data: stentData, error: sError } = await supabase
       .from("stents")
-      .insert({
-        patient_id: patientData.id,
-        unit: input.unit,
-        laterality: input.laterality,
-        material: input.material,
-        insertion_date: input.insertion_date,
-        planned_removal_date: plannedRemoval,
-        status: stentStatus,
-        removal_date: removalDate,
-        actual_removal_date: removalDate,
-        residual_stone: input.residual_stone,
-        inserted_by: input.inserted_by.trim(),
-        notes: input.notes?.trim() || null,
-      })
+      .insert(insertPayload)
       .select()
       .single();
+
+    if (sError && sError.message?.includes("actual_removal_date")) {
+      delete insertPayload.actual_removal_date;
+      const retry = await supabase
+        .from("stents")
+        .insert(insertPayload)
+        .select()
+        .single();
+      stentData = retry.data;
+      sError = retry.error;
+    }
 
     if (sError || !stentData) {
       throw new Error(`Failed to insert stent: ${sError?.message}`);
