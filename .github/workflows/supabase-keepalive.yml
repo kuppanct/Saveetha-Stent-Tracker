@@ -1,0 +1,25 @@
+name: Supabase Keep-Alive & Daily Notification Runner
+
+on:
+  schedule:
+    # Runs everyday at 04:00 UTC (09:30 AM IST)
+    - cron: '0 4 * * *'
+    # Runs everyday at 16:00 UTC (09:30 PM IST)
+    - cron: '0 16 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Keep-Alive Endpoint
+        run: |
+          echo "Pinging StentSync Keep-Alive endpoint..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" https://stentsync.vercel.app/api/keep-alive)
+          echo "Response: $RESPONSE"
+          
+      - name: Trigger Daily Stent Due & Overdue Evaluation
+        run: |
+          echo "Triggering Stent Evaluation Cron..."
+          CRON_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X GET https://stentsync.vercel.app/api/cron/trigger)
+          echo "Cron Response: $CRON_RESPONSE"

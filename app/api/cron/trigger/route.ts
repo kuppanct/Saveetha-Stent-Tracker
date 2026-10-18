@@ -3,6 +3,8 @@ import { getStents, logNotification } from "@/lib/db-service";
 import { evaluateNotificationTrigger } from "@/lib/stent-calculator";
 import { buildBilingualMessage } from "@/lib/message-templates";
 
+export const dynamic = "force-dynamic";
+
 const WHATSAPP_API_URL = process.env.WHATSAPP_API_URL || "http://localhost:3001";
 
 export async function POST(request: NextRequest) {
